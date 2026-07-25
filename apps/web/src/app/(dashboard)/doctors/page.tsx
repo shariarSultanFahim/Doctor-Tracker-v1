@@ -2,35 +2,73 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useQueryState, parseAsString, parseAsInteger } from 'nuqs';
+import { useDebounce } from 'use-debounce';
 import { useDoctors, useCreateDoctor, useUpdateDoctor, useDeleteDoctor } from '@/hooks/use-doctors';
 import { Doctor } from '@doctor-tracker/shared-types';
-import DoctorModal from './_components/doctor-modal';
+import DoctorSheet, { DoctorFormData } from './_components/doctor-sheet';
 import { toast } from 'sonner';
-import { Search, Plus, Eye, Edit2, Trash2, Calendar, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Search, Plus, Eye, Edit2, Trash2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
 export default function DoctorsPage() {
-  const [search, setSearch] = useState('');
-  const [specialization, setSpecialization] = useState('');
-  const [page, setPage] = useState(1);
-  const [limit] = useState(10);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // NUQS URL Search Params State
+  const [searchParam, setSearchParam] = useQueryState('search', parseAsString.withDefault(''));
+  const [specializationParam, setSpecializationParam] = useQueryState('specialization', parseAsString.withDefault(''));
+  const [pageParam, setPageParam] = useQueryState('page', parseAsInteger.withDefault(1));
+
+  // Local input state for smooth typing before debounce
+  const [searchInputValue, setSearchInputValue] = useState(searchParam);
+  const [specializationInputValue, setSpecializationInputValue] = useState(specializationParam);
+
+  // Debounced search terms (300ms delay)
+  const [debouncedSearch] = useDebounce(searchInputValue, 300);
+  const [debouncedSpecialization] = useDebounce(specializationInputValue, 300);
+
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
 
-  const { data, isLoading } = useDoctors({ search, specialization, page, limit });
+  // Fetch doctors with debounced terms & NUQS state
+  const { data, isLoading } = useDoctors({
+    search: debouncedSearch,
+    specialization: debouncedSpecialization,
+    page: pageParam,
+    limit: 10,
+  });
+
   const createMutation = useCreateDoctor();
   const updateMutation = useUpdateDoctor();
   const deleteMutation = useDeleteDoctor();
 
-  const handleCreateOrUpdate = async (formData: any) => {
+  const handleSearchChange = (val: string) => {
+    setSearchInputValue(val);
+    setSearchParam(val || null);
+    setPageParam(1);
+  };
+
+  const handleSpecializationChange = (val: string) => {
+    setSpecializationInputValue(val);
+    setSpecializationParam(val || null);
+    setPageParam(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearchInputValue('');
+    setSpecializationInputValue('');
+    setSearchParam(null);
+    setSpecializationParam(null);
+    setPageParam(1);
+  };
+
+  const handleCreateOrUpdate = async (formData: DoctorFormData) => {
     try {
       if (selectedDoctor) {
         await updateMutation.mutateAsync({ id: selectedDoctor._id, data: formData });
-        toast.success('Doctor updated successfully');
+        toast.success('Doctor record updated successfully');
       } else {
         await createMutation.mutateAsync(formData);
-        toast.success('Doctor created successfully');
+        toast.success('New doctor profile created');
       }
-      setIsModalOpen(false);
+      setIsSheetOpen(false);
       setSelectedDoctor(null);
     } catch (err: any) {
       toast.error(err.response?.data?.error || 'Operation failed');
@@ -53,16 +91,16 @@ export default function DoctorsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Top Header Controls */}
+      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900">Doctors Directory</h1>
-          <p className="text-sm text-slate-500">Manage and track medical specialists</p>
+          <p className="text-sm text-slate-500">Manage medical specialists with deep URL filtering</p>
         </div>
         <button
           onClick={() => {
             setSelectedDoctor(null);
-            setIsModalOpen(true);
+            setIsSheetOpen(true);
           }}
           className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium text-sm rounded-lg transition-colors shadow-sm"
         >
@@ -71,14 +109,14 @@ export default function DoctorsPage() {
         </button>
       </div>
 
-      {/* Filter Toolbar */}
+      {/* Filter Toolbar with Debounced Inputs & NUQS */}
       <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative w-full md:w-72">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
           <input
             type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchInputValue}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Search by name, specialization..."
             className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
           />
@@ -86,17 +124,14 @@ export default function DoctorsPage() {
         <div className="flex w-full md:w-auto items-center gap-2">
           <input
             type="text"
-            value={specialization}
-            onChange={(e) => setSpecialization(e.target.value)}
+            value={specializationInputValue}
+            onChange={(e) => handleSpecializationChange(e.target.value)}
             placeholder="Filter by specialization..."
             className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
           />
-          {(search || specialization) && (
+          {(searchInputValue || specializationInputValue) && (
             <button
-              onClick={() => {
-                setSearch('');
-                setSpecialization('');
-              }}
+              onClick={handleClearFilters}
               className="text-xs font-medium text-slate-500 hover:text-slate-800 px-2 py-1"
             >
               Clear
@@ -105,7 +140,7 @@ export default function DoctorsPage() {
         </div>
       </div>
 
-      {/* Doctors DataTable */}
+      {/* DataTable */}
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -125,7 +160,7 @@ export default function DoctorsPage() {
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
                     <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-sky-600" />
-                    Loading doctors...
+                    Loading doctors directory...
                   </td>
                 </tr>
               ) : doctors.length === 0 ? (
@@ -158,7 +193,7 @@ export default function DoctorsPage() {
                       <button
                         onClick={() => {
                           setSelectedDoctor(doctor);
-                          setIsModalOpen(true);
+                          setIsSheetOpen(true);
                         }}
                         className="p-1.5 text-slate-400 hover:text-amber-600 rounded-md hover:bg-amber-50"
                       >
@@ -178,7 +213,7 @@ export default function DoctorsPage() {
           </table>
         </div>
 
-        {/* Pagination Footer */}
+        {/* NUQS Synced Pagination Footer */}
         <div className="p-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
           <div>
             Showing Page {pagination.page} of {pagination.totalPages} ({pagination.total} total doctors)
@@ -186,14 +221,14 @@ export default function DoctorsPage() {
           <div className="flex items-center gap-1">
             <button
               disabled={pagination.page <= 1}
-              onClick={() => setPage((p) => p - 1)}
+              onClick={() => setPageParam(pagination.page - 1)}
               className="p-1.5 rounded-md border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               disabled={pagination.page >= pagination.totalPages}
-              onClick={() => setPage((p) => p + 1)}
+              onClick={() => setPageParam(pagination.page + 1)}
               className="p-1.5 rounded-md border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
             >
               <ChevronRight className="h-4 w-4" />
@@ -202,15 +237,15 @@ export default function DoctorsPage() {
         </div>
       </div>
 
-      <DoctorModal
-        isOpen={isModalOpen}
+      <DoctorSheet
+        isOpen={isSheetOpen}
         onClose={() => {
-          setIsModalOpen(false);
+          setIsSheetOpen(false);
           setSelectedDoctor(null);
         }}
         onSubmit={handleCreateOrUpdate}
         initialData={selectedDoctor}
-        title={selectedDoctor ? 'Edit Doctor' : 'Add New Doctor'}
+        title={selectedDoctor ? 'Edit Doctor Profile' : 'Add New Doctor'}
       />
     </div>
   );

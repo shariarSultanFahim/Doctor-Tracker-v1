@@ -1,23 +1,36 @@
 'use client';
 
 import { use, useState } from 'react';
+import Link from 'next/link';
+import { useQueryState, parseAsString, parseAsInteger } from 'nuqs';
+import { useDebounce } from 'use-debounce';
 import { useDoctor } from '@/hooks/use-doctors';
 import { useDoctorPatients, useCreatePatient, useUpdatePatient, useDeletePatient } from '@/hooks/use-patients';
 import { Patient } from '@doctor-tracker/shared-types';
-import PatientModal from '../../patients/_components/patient-modal';
+import PatientSheet, { PatientFormData } from '../../patients/_components/patient-sheet';
 import { toast } from 'sonner';
 import { UserCheck, Plus, Search, Edit2, Trash2, ChevronLeft, ChevronRight, Loader2, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
 
 export default function DoctorDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // NUQS State
+  const [searchParam, setSearchParam] = useQueryState('search', parseAsString.withDefault(''));
+  const [pageParam, setPageParam] = useQueryState('page', parseAsInteger.withDefault(1));
+
+  // Local input state for debounced search
+  const [searchInputValue, setSearchInputValue] = useState(searchParam);
+  const [debouncedSearch] = useDebounce(searchInputValue, 300);
+
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
 
   const { data: doctorRes, isLoading: isDoctorLoading } = useDoctor(id);
-  const { data: patientsRes, isLoading: isPatientsLoading } = useDoctorPatients(id, { search, page, limit: 10 });
+  const { data: patientsRes, isLoading: isPatientsLoading } = useDoctorPatients(id, {
+    search: debouncedSearch,
+    page: pageParam,
+    limit: 10,
+  });
 
   const createMutation = useCreatePatient();
   const updateMutation = useUpdatePatient();
@@ -27,7 +40,13 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
   const patients = patientsRes?.data || [];
   const pagination = patientsRes?.pagination || { total: 0, totalPages: 1, page: 1, limit: 10 };
 
-  const handleCreateOrUpdate = async (formData: any) => {
+  const handleSearchChange = (val: string) => {
+    setSearchInputValue(val);
+    setSearchParam(val || null);
+    setPageParam(1);
+  };
+
+  const handleCreateOrUpdate = async (formData: PatientFormData) => {
     try {
       if (selectedPatient) {
         await updateMutation.mutateAsync({ id: selectedPatient._id, data: formData });
@@ -36,7 +55,7 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
         await createMutation.mutateAsync({ doctorId: id, data: { ...formData, doctorId: id } });
         toast.success('Patient added to doctor roster');
       }
-      setIsModalOpen(false);
+      setIsSheetOpen(false);
       setSelectedPatient(null);
     } catch (err: any) {
       toast.error(err.response?.data?.error || 'Operation failed');
@@ -64,17 +83,13 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
   }
 
   if (!doctor) {
-    return (
-      <div className="py-12 text-center text-slate-500">
-        Doctor profile not found.
-      </div>
-    );
+    return <div className="py-12 text-center text-slate-500">Doctor profile not found.</div>;
   }
 
   return (
     <div className="space-y-6">
       <Link href="/doctors" className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-900">
-        <ArrowLeft className="h-4 w-4" /> Back to Doctors
+        <ArrowLeft className="h-4 w-4" /> Back to Doctors Directory
       </Link>
 
       {/* Doctor Summary Card */}
@@ -114,7 +129,7 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
         <button
           onClick={() => {
             setSelectedPatient(null);
-            setIsModalOpen(true);
+            setIsSheetOpen(true);
           }}
           className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium text-sm rounded-lg transition-colors shadow-sm"
         >
@@ -130,8 +145,8 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
             <input
               type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={searchInputValue}
+              onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="Search patients..."
               className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20"
             />
@@ -178,7 +193,7 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
                       <button
                         onClick={() => {
                           setSelectedPatient(patient);
-                          setIsModalOpen(true);
+                          setIsSheetOpen(true);
                         }}
                         className="p-1.5 text-slate-400 hover:text-amber-600 rounded-md hover:bg-amber-50"
                       >
@@ -197,16 +212,40 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
             </tbody>
           </table>
         </div>
+
+        {/* NUQS Synced Pagination Footer */}
+        <div className="p-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <div>
+            Showing Page {pagination.page} of {pagination.totalPages} ({pagination.total} total patients)
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              disabled={pagination.page <= 1}
+              onClick={() => setPageParam(pagination.page - 1)}
+              className="p-1.5 rounded-md border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              disabled={pagination.page >= pagination.totalPages}
+              onClick={() => setPageParam(pagination.page + 1)}
+              className="p-1.5 rounded-md border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
       </div>
 
-      <PatientModal
-        isOpen={isModalOpen}
+      <PatientSheet
+        isOpen={isSheetOpen}
         onClose={() => {
-          setIsModalOpen(false);
+          setIsSheetOpen(false);
           setSelectedPatient(null);
         }}
         onSubmit={handleCreateOrUpdate}
         initialData={selectedPatient}
+        doctors={doctor ? [doctor] : []}
         lockDoctorId={id}
         title={selectedPatient ? 'Edit Patient Record' : 'Add New Patient'}
       />

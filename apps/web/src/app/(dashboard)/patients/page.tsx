@@ -2,22 +2,39 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useQueryState, parseAsString, parseAsInteger } from 'nuqs';
+import { useDebounce } from 'use-debounce';
 import { usePatients, useCreatePatient, useUpdatePatient, useDeletePatient } from '@/hooks/use-patients';
 import { useDoctors } from '@/hooks/use-doctors';
 import { Patient } from '@doctor-tracker/shared-types';
-import PatientModal from './_components/patient-modal';
+import PatientSheet, { PatientFormData } from './_components/patient-sheet';
 import { toast } from 'sonner';
-import { Search, Plus, Edit2, Trash2, ChevronLeft, ChevronRight, Loader2, User } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
 export default function PatientsPage() {
-  const [search, setSearch] = useState('');
-  const [condition, setCondition] = useState('');
-  const [doctorId, setDoctorId] = useState('');
-  const [page, setPage] = useState(1);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // NUQS State
+  const [searchParam, setSearchParam] = useQueryState('search', parseAsString.withDefault(''));
+  const [conditionParam, setConditionParam] = useQueryState('condition', parseAsString.withDefault(''));
+  const [doctorIdParam, setDoctorIdParam] = useQueryState('doctorId', parseAsString.withDefault(''));
+  const [pageParam, setPageParam] = useQueryState('page', parseAsInteger.withDefault(1));
+
+  // Local input state for smooth debounced search & condition
+  const [searchInputValue, setSearchInputValue] = useState(searchParam);
+  const [conditionInputValue, setConditionInputValue] = useState(conditionParam);
+
+  const [debouncedSearch] = useDebounce(searchInputValue, 300);
+  const [debouncedCondition] = useDebounce(conditionInputValue, 300);
+
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
 
-  const { data: patientsRes, isLoading } = usePatients({ search, condition, doctorId, page, limit: 10 });
+  const { data: patientsRes, isLoading } = usePatients({
+    search: debouncedSearch,
+    condition: debouncedCondition,
+    doctorId: doctorIdParam,
+    page: pageParam,
+    limit: 10,
+  });
   const { data: doctorsRes } = useDoctors({ limit: 100 });
 
   const createMutation = useCreatePatient();
@@ -28,7 +45,33 @@ export default function PatientsPage() {
   const doctors = doctorsRes?.data || [];
   const pagination = patientsRes?.pagination || { total: 0, totalPages: 1, page: 1, limit: 10 };
 
-  const handleCreateOrUpdate = async (formData: any) => {
+  const handleSearchChange = (val: string) => {
+    setSearchInputValue(val);
+    setSearchParam(val || null);
+    setPageParam(1);
+  };
+
+  const handleConditionChange = (val: string) => {
+    setConditionInputValue(val);
+    setConditionParam(val || null);
+    setPageParam(1);
+  };
+
+  const handleDoctorChange = (val: string) => {
+    setDoctorIdParam(val || null);
+    setPageParam(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearchInputValue('');
+    setConditionInputValue('');
+    setSearchParam(null);
+    setConditionParam(null);
+    setDoctorIdParam(null);
+    setPageParam(1);
+  };
+
+  const handleCreateOrUpdate = async (formData: PatientFormData) => {
     try {
       if (selectedPatient) {
         await updateMutation.mutateAsync({ id: selectedPatient._id, data: formData });
@@ -37,7 +80,7 @@ export default function PatientsPage() {
         await createMutation.mutateAsync({ doctorId: formData.doctorId, data: formData });
         toast.success('Patient record created');
       }
-      setIsModalOpen(false);
+      setIsSheetOpen(false);
       setSelectedPatient(null);
     } catch (err: any) {
       toast.error(err.response?.data?.error || 'Operation failed');
@@ -61,12 +104,12 @@ export default function PatientsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900">Patients Directory</h1>
-          <p className="text-sm text-slate-500">Manage patient records across all medical specialists</p>
+          <p className="text-sm text-slate-500">Manage patient records across specialists with deep URL state</p>
         </div>
         <button
           onClick={() => {
             setSelectedPatient(null);
-            setIsModalOpen(true);
+            setIsSheetOpen(true);
           }}
           className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium text-sm rounded-lg transition-colors shadow-sm"
         >
@@ -75,14 +118,14 @@ export default function PatientsPage() {
         </button>
       </div>
 
-      {/* Filter Toolbar */}
+      {/* Filter Toolbar with Debounced Inputs & NUQS */}
       <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative w-full md:w-64">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
           <input
             type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchInputValue}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Search patient name..."
             className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20"
           />
@@ -91,14 +134,14 @@ export default function PatientsPage() {
         <div className="flex flex-wrap w-full md:w-auto items-center gap-2">
           <input
             type="text"
-            value={condition}
-            onChange={(e) => setCondition(e.target.value)}
+            value={conditionInputValue}
+            onChange={(e) => handleConditionChange(e.target.value)}
             placeholder="Filter by condition..."
             className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20"
           />
           <select
-            value={doctorId}
-            onChange={(e) => setDoctorId(e.target.value)}
+            value={doctorIdParam}
+            onChange={(e) => handleDoctorChange(e.target.value)}
             className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 bg-white"
           >
             <option value="">All Doctors</option>
@@ -108,13 +151,9 @@ export default function PatientsPage() {
               </option>
             ))}
           </select>
-          {(search || condition || doctorId) && (
+          {(searchInputValue || conditionInputValue || doctorIdParam) && (
             <button
-              onClick={() => {
-                setSearch('');
-                setCondition('');
-                setDoctorId('');
-              }}
+              onClick={handleClearFilters}
               className="text-xs font-medium text-slate-500 hover:text-slate-800 px-2 py-1"
             >
               Clear
@@ -173,7 +212,7 @@ export default function PatientsPage() {
                         <button
                           onClick={() => {
                             setSelectedPatient(patient);
-                            setIsModalOpen(true);
+                            setIsSheetOpen(true);
                           }}
                           className="p-1.5 text-slate-400 hover:text-amber-600 rounded-md hover:bg-amber-50"
                         >
@@ -194,7 +233,7 @@ export default function PatientsPage() {
           </table>
         </div>
 
-        {/* Pagination Footer */}
+        {/* NUQS Synced Pagination Footer */}
         <div className="p-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
           <div>
             Showing Page {pagination.page} of {pagination.totalPages} ({pagination.total} total patients)
@@ -202,14 +241,14 @@ export default function PatientsPage() {
           <div className="flex items-center gap-1">
             <button
               disabled={pagination.page <= 1}
-              onClick={() => setPage((p) => p - 1)}
+              onClick={() => setPageParam(pagination.page - 1)}
               className="p-1.5 rounded-md border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               disabled={pagination.page >= pagination.totalPages}
-              onClick={() => setPage((p) => p + 1)}
+              onClick={() => setPageParam(pagination.page + 1)}
               className="p-1.5 rounded-md border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
             >
               <ChevronRight className="h-4 w-4" />
@@ -218,10 +257,10 @@ export default function PatientsPage() {
         </div>
       </div>
 
-      <PatientModal
-        isOpen={isModalOpen}
+      <PatientSheet
+        isOpen={isSheetOpen}
         onClose={() => {
-          setIsModalOpen(false);
+          setIsSheetOpen(false);
           setSelectedPatient(null);
         }}
         onSubmit={handleCreateOrUpdate}

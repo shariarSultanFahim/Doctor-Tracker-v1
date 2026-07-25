@@ -9,6 +9,7 @@ import { Doctor } from '@doctor-tracker/shared-types';
 import DoctorSheet, { DoctorFormData } from './_components/doctor-sheet';
 import { toast } from 'sonner';
 import { Search, Plus, Eye, Edit2, Trash2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import SpecializationCombobox from '@/components/shared/specialization-combobox';
 
 export default function DoctorsPage() {
   // NUQS URL Search Params State
@@ -117,17 +118,14 @@ export default function DoctorsPage() {
             type="text"
             value={searchInputValue}
             onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Search by name, specialization..."
+            placeholder="Search by name..."
             className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
           />
         </div>
         <div className="flex w-full md:w-auto items-center gap-2">
-          <input
-            type="text"
+          <SpecializationCombobox
             value={specializationInputValue}
-            onChange={(e) => handleSpecializationChange(e.target.value)}
-            placeholder="Filter by specialization..."
-            className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+            onChange={handleSpecializationChange}
           />
           {(searchInputValue || specializationInputValue) && (
             <button
@@ -172,7 +170,20 @@ export default function DoctorsPage() {
               ) : (
                 doctors.map((doctor) => (
                   <tr key={doctor._id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-3 px-4 font-medium text-slate-900">{doctor.name}</td>
+                    <td className="py-3 px-4 font-medium text-slate-900">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
+                          {doctor.avatar ? (
+                            <img src={doctor.avatar} alt={doctor.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-xs font-bold text-slate-400">
+                              {doctor.name.charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+                        <span>{doctor.name}</span>
+                      </div>
+                    </td>
                     <td className="py-3 px-4 text-slate-600">{doctor.specialization}</td>
                     <td className="py-3 px-4 text-slate-600">{doctor.hospital}</td>
                     <td className="py-3 px-4 text-slate-600 text-xs">

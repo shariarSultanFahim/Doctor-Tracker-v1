@@ -31,3 +31,7 @@ export async function updatePatient(id: string, data: Partial<Patient>): Promise
 export async function deletePatient(id: string): Promise<ApiResponse<void>> {
   return del<ApiResponse<void>>(`/patients/${id}`);
 }
+
+export async function fetchPatient(id: string): Promise<ApiResponse<Patient>> {
+  return get<ApiResponse<Patient>>(`/patients/${id}`);
+}

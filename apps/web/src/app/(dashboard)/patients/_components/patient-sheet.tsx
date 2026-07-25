@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { Patient, Doctor } from '@doctor-tracker/shared-types';
 import DoctorCombobox from '@/components/shared/doctor-combobox';
 import { X, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export const patientFormSchema = z.object({
   doctorId: z.string().min(1, 'Attending Doctor selection is required'),
@@ -16,6 +17,7 @@ export const patientFormSchema = z.object({
   phone: z.string().min(5, 'Valid phone number is required'),
   visitDate: z.string().min(1, 'Visit date is required'),
   notes: z.string().max(500, 'Notes max 500 characters').optional(),
+  avatar: z.string().optional(),
 });
 
 export type PatientFormData = z.infer<typeof patientFormSchema>;
@@ -45,6 +47,8 @@ export default function PatientSheet({
     register,
     handleSubmit,
     control,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<PatientFormData>({
     resolver: zodResolver(patientFormSchema),
@@ -57,8 +61,27 @@ export default function PatientSheet({
       phone: initialData?.phone || '',
       visitDate: initialData?.visitDate ? new Date(initialData.visitDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       notes: initialData?.notes || '',
+      avatar: initialData?.avatar || '',
     },
   });
+
+  const watchAvatar = watch('avatar');
+  const watchName = watch('name');
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('Image size must be less than 2MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setValue('avatar', reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -80,6 +103,43 @@ export default function PatientSheet({
           </div>
 
           <form id="patient-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="flex flex-col items-center gap-3 mb-6">
+              <div className="relative group">
+                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-200 bg-slate-50 flex items-center justify-center">
+                  {watchAvatar ? (
+                    <img src={watchAvatar} alt="Patient Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-2xl font-bold text-slate-400">
+                      {watchName ? watchName.charAt(0).toUpperCase() : 'P'}
+                    </span>
+                  )}
+                </div>
+                <label
+                  htmlFor="patient-avatar"
+                  className="absolute inset-0 bg-slate-900/60 text-white rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-xs font-semibold"
+                >
+                  <span>Upload</span>
+                  <span>Photo</span>
+                </label>
+                <input
+                  type="file"
+                  id="patient-avatar"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                />
+              </div>
+              {watchAvatar && (
+                <button
+                  type="button"
+                  onClick={() => setValue('avatar', '')}
+                  className="text-xs text-red-500 hover:text-red-700 font-semibold"
+                >
+                  Remove Photo
+                </button>
+              )}
+            </div>
+
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">Attending Doctor</label>
               {lockDoctorId ? (

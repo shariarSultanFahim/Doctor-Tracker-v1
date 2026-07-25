@@ -16,6 +16,7 @@ const patientSchema = new Schema<PatientDocument>(
     phone: { type: String, required: true },
     visitDate: { type: Date, required: true },
     notes: { type: String },
+    avatar: { type: String },
   },
   { timestamps: true }
 );

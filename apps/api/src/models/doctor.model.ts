@@ -10,6 +10,7 @@ const doctorSchema = new Schema<DoctorDocument>(
     hospital: { type: String, required: true },
     phone: { type: String, required: true },
     email: { type: String, required: true },
+    avatar: { type: String },
   },
   { timestamps: true }
 );

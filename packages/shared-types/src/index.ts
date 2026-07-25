@@ -13,6 +13,7 @@ export interface Doctor {
   hospital: string;
   phone: string;
   email: string;
+  avatar?: string;
   patientCount?: number;
   createdAt: string;
   updatedAt: string;
@@ -31,6 +32,7 @@ export interface Patient {
   phone: string;
   visitDate: string;
   notes?: string;
+  avatar?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchPatients, fetchDoctorPatients, createDoctorPatient, updatePatient, deletePatient, PatientFilters } from '../lib/api/patients';
+import { fetchPatients, fetchDoctorPatients, createDoctorPatient, updatePatient, deletePatient, fetchPatient, PatientFilters } from '../lib/api/patients';
 import { Patient } from '@doctor-tracker/shared-types';
 
 export function usePatients(filters: PatientFilters = {}) {
@@ -54,5 +54,14 @@ export function useDeletePatient() {
       queryClient.invalidateQueries({ queryKey: ['doctors'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
+  });
+}
+
+export function usePatient(id: string) {
+  return useQuery({
+    queryKey: ['patient', id],
+    queryFn: () => fetchPatient(id),
+    enabled: !!id,
+    staleTime: 1000 * 60 * 5,
   });
 }

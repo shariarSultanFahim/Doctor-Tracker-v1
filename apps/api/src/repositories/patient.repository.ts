@@ -110,7 +110,7 @@ export class PatientRepository {
   }
 
   async findById(id: string): Promise<PatientDocument | null> {
-    return Patient.findById(id).populate('doctorId', 'name specialization hospital');
+    return Patient.findById(id).populate('doctorId', 'name specialization hospital avatar');
   }
 
   async create(data: Partial<PatientDocument>): Promise<PatientDocument> {

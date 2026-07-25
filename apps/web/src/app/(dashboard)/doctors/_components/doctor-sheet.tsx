@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Doctor } from '@doctor-tracker/shared-types';
 import { X, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export const doctorFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -12,6 +13,7 @@ export const doctorFormSchema = z.object({
   hospital: z.string().min(1, 'Hospital is required'),
   phone: z.string().min(5, 'Valid phone number is required'),
   email: z.string().email('Invalid email address'),
+  avatar: z.string().optional(),
 });
 
 export type DoctorFormData = z.infer<typeof doctorFormSchema>;
@@ -28,6 +30,8 @@ export default function DoctorSheet({ isOpen, onClose, onSubmit, initialData, ti
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<DoctorFormData>({
     resolver: zodResolver(doctorFormSchema),
@@ -38,6 +42,7 @@ export default function DoctorSheet({ isOpen, onClose, onSubmit, initialData, ti
           hospital: initialData.hospital,
           phone: initialData.phone,
           email: initialData.email,
+          avatar: initialData.avatar || '',
         }
       : {
           name: '',
@@ -45,8 +50,27 @@ export default function DoctorSheet({ isOpen, onClose, onSubmit, initialData, ti
           hospital: '',
           phone: '',
           email: '',
+          avatar: '',
         },
   });
+
+  const watchAvatar = watch('avatar');
+  const watchName = watch('name');
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('Image size must be less than 2MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setValue('avatar', reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -65,6 +89,43 @@ export default function DoctorSheet({ isOpen, onClose, onSubmit, initialData, ti
           </div>
 
           <form id="doctor-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="flex flex-col items-center gap-3 mb-6">
+              <div className="relative group">
+                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-200 bg-slate-50 flex items-center justify-center">
+                  {watchAvatar ? (
+                    <img src={watchAvatar} alt="Doctor Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-2xl font-bold text-slate-400">
+                      {watchName ? watchName.charAt(0).toUpperCase() : 'DR'}
+                    </span>
+                  )}
+                </div>
+                <label
+                  htmlFor="doctor-avatar"
+                  className="absolute inset-0 bg-slate-900/60 text-white rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-xs font-semibold"
+                >
+                  <span>Upload</span>
+                  <span>Photo</span>
+                </label>
+                <input
+                  type="file"
+                  id="doctor-avatar"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                />
+              </div>
+              {watchAvatar && (
+                <button
+                  type="button"
+                  onClick={() => setValue('avatar', '')}
+                  className="text-xs text-red-500 hover:text-red-700 font-semibold"
+                >
+                  Remove Photo
+                </button>
+              )}
+            </div>
+
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
               <input

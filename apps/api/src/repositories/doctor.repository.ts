@@ -31,13 +31,7 @@ export class DoctorRepository {
 
     if (params.search) {
       const fuzzyRegex = buildFuzzyRegex(params.search.trim());
-      match.$or = [
-        { name: fuzzyRegex },
-        { specialization: fuzzyRegex },
-        { hospital: fuzzyRegex },
-        { email: fuzzyRegex },
-        { phone: fuzzyRegex },
-      ];
+      match.name = fuzzyRegex;
     }
 
     if (params.specialization) {

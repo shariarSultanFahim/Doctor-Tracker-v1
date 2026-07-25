@@ -10,7 +10,7 @@ import { Patient } from '@doctor-tracker/shared-types';
 import PatientSheet, { PatientFormData } from './_components/patient-sheet';
 import DoctorCombobox from '@/components/shared/doctor-combobox';
 import { toast } from 'sonner';
-import { Search, Plus, Edit2, Trash2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Search, Plus, Eye, Edit2, Trash2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
 export default function PatientsPage() {
   // NUQS State
@@ -193,7 +193,20 @@ export default function PatientsPage() {
                   const docId = typeof patient.doctorId === 'object' ? patient.doctorId._id : patient.doctorId;
                   return (
                     <tr key={patient._id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-3 px-4 font-medium text-slate-900">{patient.name}</td>
+                      <td className="py-3 px-4 font-medium text-slate-900">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
+                            {patient.avatar ? (
+                              <img src={patient.avatar} alt={patient.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-xs font-bold text-slate-400">
+                                {patient.name.charAt(0).toUpperCase()}
+                              </span>
+                            )}
+                          </div>
+                          <span>{patient.name}</span>
+                        </div>
+                      </td>
                       <td className="py-3 px-4 text-slate-600">{patient.age} / {patient.gender}</td>
                       <td className="py-3 px-4 text-slate-600">{patient.condition}</td>
                       <td className="py-3 px-4 text-sky-600 font-medium">
@@ -206,6 +219,12 @@ export default function PatientsPage() {
                       </td>
                       <td className="py-3 px-4 text-slate-600 text-xs">{patient.phone}</td>
                       <td className="py-3 px-4 text-right space-x-1">
+                        <Link
+                          href={`/patients/${patient._id}`}
+                          className="p-1.5 inline-flex text-slate-400 hover:text-sky-600 rounded-md hover:bg-sky-50"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Link>
                         <button
                           onClick={() => {
                             setSelectedPatient(patient);

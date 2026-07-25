@@ -6,6 +6,7 @@ export const createDoctorSchema = z.object({
   hospital: z.string().min(1, 'Hospital is required'),
   phone: z.string().min(5, 'Valid phone number is required'),
   email: z.string().email('Invalid email address'),
+  avatar: z.string().optional(),
 });
 
 export const updateDoctorSchema = createDoctorSchema.partial();

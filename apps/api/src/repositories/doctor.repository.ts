@@ -11,6 +11,16 @@ export interface DoctorQueryParams {
   limit?: number;
 }
 
+/**
+ * Converts a search term into a fuzzy regex pattern allowing optional character gaps.
+ * e.g., "cardio" -> "c.*a.*r.*d.*i.*o", "sara" -> "s.*a.*r.*a"
+ */
+function buildFuzzyRegex(term: string): RegExp {
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const fuzzyPattern = escaped.split('').join('.*');
+  return new RegExp(fuzzyPattern, 'i');
+}
+
 export class DoctorRepository {
   async findPaginated(params: DoctorQueryParams): Promise<PaginatedResponse<DoctorDocument>> {
     const page = Math.max(1, params.page || 1);
@@ -20,15 +30,19 @@ export class DoctorRepository {
     const match: Record<string, unknown> = {};
 
     if (params.search) {
+      const fuzzyRegex = buildFuzzyRegex(params.search.trim());
       match.$or = [
-        { name: { $regex: params.search, $options: 'i' } },
-        { specialization: { $regex: params.search, $options: 'i' } },
-        { hospital: { $regex: params.search, $options: 'i' } },
+        { name: fuzzyRegex },
+        { specialization: fuzzyRegex },
+        { hospital: fuzzyRegex },
+        { email: fuzzyRegex },
+        { phone: fuzzyRegex },
       ];
     }
 
     if (params.specialization) {
-      match.specialization = { $regex: `^${params.specialization}$`, $options: 'i' };
+      const fuzzySpecRegex = buildFuzzyRegex(params.specialization.trim());
+      match.specialization = fuzzySpecRegex;
     }
 
     if (params.from || params.to) {

@@ -13,6 +13,15 @@ export interface PatientQueryParams {
   limit?: number;
 }
 
+/**
+ * Converts a search term into a fuzzy regex pattern allowing optional character gaps.
+ */
+function buildFuzzyRegex(term: string): RegExp {
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const fuzzyPattern = escaped.split('').join('.*');
+  return new RegExp(fuzzyPattern, 'i');
+}
+
 export class PatientRepository {
   async findPaginated(params: PatientQueryParams): Promise<PaginatedResponse<PatientDocument>> {
     const page = Math.max(1, params.page || 1);
@@ -22,14 +31,17 @@ export class PatientRepository {
     const match: Record<string, unknown> = {};
 
     if (params.search) {
+      const fuzzyRegex = buildFuzzyRegex(params.search.trim());
       match.$or = [
-        { name: { $regex: params.search, $options: 'i' } },
-        { condition: { $regex: params.search, $options: 'i' } },
+        { name: fuzzyRegex },
+        { condition: fuzzyRegex },
+        { phone: fuzzyRegex },
       ];
     }
 
     if (params.condition) {
-      match.condition = { $regex: params.condition, $options: 'i' };
+      const fuzzyConditionRegex = buildFuzzyRegex(params.condition.trim());
+      match.condition = fuzzyConditionRegex;
     }
 
     if (params.doctorId) {

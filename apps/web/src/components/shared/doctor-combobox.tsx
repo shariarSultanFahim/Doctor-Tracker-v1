@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Doctor } from '@doctor-tracker/shared-types';
+import Fuse from 'fuse.js';
 import { ChevronsUpDown, Check, Search, X } from 'lucide-react';
 
 interface DoctorComboboxProps {
@@ -25,12 +26,19 @@ export default function DoctorCombobox({
 
   const selectedDoctor = doctors.find((d) => d._id === value);
 
-  const filteredDoctors = doctors.filter(
-    (doc) =>
-      doc.name.toLowerCase().includes(search.toLowerCase()) ||
-      doc.specialization.toLowerCase().includes(search.toLowerCase()) ||
-      doc.hospital.toLowerCase().includes(search.toLowerCase())
-  );
+  // Initialize Fuse.js for fuzzy matching on name, specialization, and hospital
+  const fuse = useMemo(() => {
+    return new Fuse(doctors, {
+      keys: ['name', 'specialization', 'hospital'],
+      threshold: 0.4,
+      distance: 100,
+    });
+  }, [doctors]);
+
+  const filteredDoctors = useMemo(() => {
+    if (!search.trim()) return doctors;
+    return fuse.search(search).map((result) => result.item);
+  }, [search, doctors, fuse]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -77,7 +85,7 @@ export default function DoctorCombobox({
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search doctor..."
+              placeholder="Fuzzy search doctor..."
               className="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-sky-500/20"
               autoFocus
             />

@@ -33,9 +33,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <AppSidebar />
+      <AppSidebar variant="inset" />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b border-slate-200 bg-white px-4 sticky top-0 z-10">
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b border-slate-200 bg-white/80 backdrop-blur-sm px-4 sticky top-0 z-10 rounded-t-xl">
           <div className="flex w-full items-center gap-2 px-2">
             <SidebarTrigger className="-ml-1 text-slate-700" />
             <Separator
@@ -69,7 +69,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Breadcrumb>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-6 w-full mx-auto">
+        <div className="flex flex-1 flex-col gap-4 p-6 w-full mx-auto bg-slate-50/50 rounded-b-xl">
           {children}
         </div>
       </SidebarInset>

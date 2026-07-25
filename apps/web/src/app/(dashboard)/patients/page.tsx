@@ -8,6 +8,7 @@ import { usePatients, useCreatePatient, useUpdatePatient, useDeletePatient } fro
 import { useDoctors } from '@/hooks/use-doctors';
 import { Patient } from '@doctor-tracker/shared-types';
 import PatientSheet, { PatientFormData } from './_components/patient-sheet';
+import DoctorCombobox from '@/components/shared/doctor-combobox';
 import { toast } from 'sonner';
 import { Search, Plus, Edit2, Trash2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
@@ -104,7 +105,7 @@ export default function PatientsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900">Patients Directory</h1>
-          <p className="text-sm text-slate-500">Manage patient records across specialists with deep URL state</p>
+          <p className="text-sm text-slate-500">Manage patient records across specialists with case-insensitive search</p>
         </div>
         <button
           onClick={() => {
@@ -118,7 +119,7 @@ export default function PatientsPage() {
         </button>
       </div>
 
-      {/* Filter Toolbar with Debounced Inputs & NUQS */}
+      {/* Filter Toolbar with Debounced Inputs & Searchable Doctor Combobox */}
       <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative w-full md:w-64">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -131,7 +132,7 @@ export default function PatientsPage() {
           />
         </div>
 
-        <div className="flex flex-wrap w-full md:w-auto items-center gap-2">
+        <div className="flex flex-col sm:flex-row w-full md:w-auto items-stretch sm:items-center gap-2">
           <input
             type="text"
             value={conditionInputValue}
@@ -139,22 +140,18 @@ export default function PatientsPage() {
             placeholder="Filter by condition..."
             className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20"
           />
-          <select
-            value={doctorIdParam}
-            onChange={(e) => handleDoctorChange(e.target.value)}
-            className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 bg-white"
-          >
-            <option value="">All Doctors</option>
-            {doctors.map((doc) => (
-              <option key={doc._id} value={doc._id}>
-                {doc.name}
-              </option>
-            ))}
-          </select>
+          <div className="w-full sm:w-64">
+            <DoctorCombobox
+              doctors={doctors}
+              value={doctorIdParam}
+              onChange={handleDoctorChange}
+              placeholder="Filter by doctor..."
+            />
+          </div>
           {(searchInputValue || conditionInputValue || doctorIdParam) && (
             <button
               onClick={handleClearFilters}
-              className="text-xs font-medium text-slate-500 hover:text-slate-800 px-2 py-1"
+              className="text-xs font-medium text-slate-500 hover:text-slate-800 px-2 py-1 self-center"
             >
               Clear
             </button>

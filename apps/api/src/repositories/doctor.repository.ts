@@ -20,11 +20,15 @@ export class DoctorRepository {
     const match: Record<string, unknown> = {};
 
     if (params.search) {
-      match.$text = { $search: params.search };
+      match.$or = [
+        { name: { $regex: params.search, $options: 'i' } },
+        { specialization: { $regex: params.search, $options: 'i' } },
+        { hospital: { $regex: params.search, $options: 'i' } },
+      ];
     }
 
     if (params.specialization) {
-      match.specialization = params.specialization;
+      match.specialization = { $regex: `^${params.specialization}$`, $options: 'i' };
     }
 
     if (params.from || params.to) {

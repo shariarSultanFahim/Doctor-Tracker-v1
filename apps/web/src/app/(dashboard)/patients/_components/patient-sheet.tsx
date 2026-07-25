@@ -1,9 +1,10 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Patient, Doctor } from '@doctor-tracker/shared-types';
+import DoctorCombobox from '@/components/shared/doctor-combobox';
 import { X, Loader2 } from 'lucide-react';
 
 export const patientFormSchema = z.object({
@@ -43,6 +44,7 @@ export default function PatientSheet({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<PatientFormData>({
     resolver: zodResolver(patientFormSchema),
@@ -60,7 +62,6 @@ export default function PatientSheet({
 
   if (!isOpen) return null;
 
-  // Lookup locked doctor name for display
   const lockedDoctor = doctors.find((d) => d._id === lockDoctorId);
   const lockedDoctorDisplayName = lockedDoctor ? `${lockedDoctor.name} (${lockedDoctor.specialization})` : lockDoctorId;
 
@@ -89,17 +90,18 @@ export default function PatientSheet({
                   </div>
                 </div>
               ) : (
-                <select
-                  {...register('doctorId')}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 bg-white"
-                >
-                  <option value="">Select a Doctor</option>
-                  {doctors.map((doc) => (
-                    <option key={doc._id} value={doc._id}>
-                      {doc.name} ({doc.specialization})
-                    </option>
-                  ))}
-                </select>
+                <Controller
+                  name="doctorId"
+                  control={control}
+                  render={({ field }) => (
+                    <DoctorCombobox
+                      doctors={doctors}
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Search & select doctor..."
+                    />
+                  )}
+                />
               )}
               {errors.doctorId && <p className="text-xs text-red-500 mt-1">{errors.doctorId.message}</p>}
             </div>

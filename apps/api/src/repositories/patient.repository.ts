@@ -22,11 +22,14 @@ export class PatientRepository {
     const match: Record<string, unknown> = {};
 
     if (params.search) {
-      match.$text = { $search: params.search };
+      match.$or = [
+        { name: { $regex: params.search, $options: 'i' } },
+        { condition: { $regex: params.search, $options: 'i' } },
+      ];
     }
 
     if (params.condition) {
-      match.condition = params.condition;
+      match.condition = { $regex: params.condition, $options: 'i' };
     }
 
     if (params.doctorId) {

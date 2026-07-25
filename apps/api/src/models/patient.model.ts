@@ -1,8 +1,9 @@
 import { Schema, model, Document, Types } from 'mongoose';
 import { Patient as IPatient } from '@doctor-tracker/shared-types';
 
-export interface PatientDocument extends Omit<IPatient, '_id' | 'doctorId'>, Document {
+export interface PatientDocument extends Omit<IPatient, '_id' | 'doctorId' | 'visitDate'>, Document {
   doctorId: Types.ObjectId;
+  visitDate: Date;
 }
 
 const patientSchema = new Schema<PatientDocument>(

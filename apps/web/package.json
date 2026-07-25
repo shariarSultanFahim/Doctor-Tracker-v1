@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@doctor-tracker/shared-types": "*",
+    "@hookform/resolvers": "^5.4.3",
     "@tanstack/react-query": "^5.28.4",
     "axios": "^1.6.8",
     "clsx": "^2.1.0",
@@ -25,6 +26,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^20.11.24",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
@@ -33,7 +35,6 @@
     "eslint-config-next": "15.1.0",
     "postcss": "^8.4.35",
     "tailwindcss": "4.3.3",
-    "@tailwindcss/postcss": "^4.0.0",
     "typescript": "^5.3.3"
   }
 }

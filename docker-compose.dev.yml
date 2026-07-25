@@ -1,0 +1,16 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    volumes:
+      - ./apps/api/src:/app/apps/api/src
+    command: npm run dev --workspace=@doctor-tracker/api
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    volumes:
+      - ./apps/web/src:/app/apps/web/src
+    command: npm run dev --workspace=@doctor-tracker/web

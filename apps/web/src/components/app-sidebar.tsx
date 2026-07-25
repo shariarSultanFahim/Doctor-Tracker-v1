@@ -1,20 +1,5 @@
 'use client';
 
-import * as React from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import {
-  LayoutDashboard,
-  UserCheck,
-  Users,
-  LogOut,
-  Stethoscope,
-  FileText,
-  Settings,
-  HelpCircle,
-} from 'lucide-react';
-import { SearchForm } from '@/components/search-form';
-import { VersionSwitcher } from '@/components/version-switcher';
 import {
   Sidebar,
   SidebarContent,
@@ -29,6 +14,15 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { logout } from '@/lib/api/auth';
+import {
+  LayoutDashboard,
+  LogOut,
+  UserCheck,
+  Users
+} from 'lucide-react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import * as React from 'react';
 import { toast } from 'sonner';
 
 const sidebarData = {
@@ -77,13 +71,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   return (
-    <Sidebar {...props}>
-      <SidebarHeader className="space-y-2 p-2">
-        <VersionSwitcher
-          versions={sidebarData.versions}
-          defaultVersion={sidebarData.versions[0]}
-        />
-        <SearchForm />
+    <Sidebar collapsible="offcanvas" {...props}>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className="data-[slot=sidebar-menu-button]:p-1.5!"
+            >
+              <Link href="/dashboard" className="flex items-center gap-2">
+                <span className="text-base font-bold text-sky-600">Doctor Tracker</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         {sidebarData.navMain.map((group) => (

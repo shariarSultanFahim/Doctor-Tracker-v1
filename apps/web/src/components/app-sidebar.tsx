@@ -59,21 +59,6 @@ const sidebarData = {
         },
       ],
     },
-    {
-      title: 'System & Reports',
-      items: [
-        {
-          title: 'Analytics Reports',
-          url: '/dashboard',
-          icon: FileText,
-        },
-        {
-          title: 'Medical Settings',
-          url: '/dashboard',
-          icon: Settings,
-        },
-      ],
-    },
   ],
 };
 

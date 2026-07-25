@@ -1,5 +1,15 @@
 'use client';
 
+import * as React from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import {
+  LayoutDashboard,
+  UserCheck,
+  Users,
+  LogOut,
+  Activity,
+} from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -13,20 +23,16 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { logout } from '@/lib/api/auth';
-import {
-  LayoutDashboard,
-  LogOut,
-  UserCheck,
-  Users
-} from 'lucide-react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import * as React from 'react';
 import { toast } from 'sonner';
 
-const sidebarData = {
-  versions: ['1.0.1', '1.1.0-alpha', '2.0.0-beta1'],
+const data = {
+  info: {
+    title: 'Doctor Tracker',
+    subtitle: 'Admin Medical Portal',
+  },
   navMain: [
     {
       title: 'Core System',
@@ -71,23 +77,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar variant="inset" collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:p-1.5!"
-            >
-              <Link href="/dashboard" className="flex items-center gap-2">
-                <span className="text-base font-bold text-sky-600">Doctor Tracker</span>
+            <SidebarMenuButton size="lg" asChild>
+              <Link href="/dashboard">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sky-600 text-white">
+                  <Activity className="size-5" />
+                </div>
+                <div className="grid flex-1 text-sm leading-tight">
+                  <span className="truncate text-sm font-bold">{data.info.title}</span>
+                  <span className="truncate text-xs font-semibold text-sidebar-foreground/60">
+                    {data.info.subtitle}
+                  </span>
+                </div>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
-        {sidebarData.navMain.map((group) => (
+        {data.navMain.map((group) => (
           <SidebarGroup key={group.title}>
             <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -99,9 +111,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     (item.url !== '/dashboard' && pathname.startsWith(item.url));
                   return (
                     <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        className="data-[active=true]:bg-white/25 data-[active=true]:shadow-md data-[active=true]:backdrop-blur-sm data-[active=true]:text-primary-foreground"
+                      >
                         <Link href={item.url}>
-                          <Icon className="h-4 w-4" />
+                          <Icon />
                           <span>{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
@@ -113,16 +129,39 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroup>
         ))}
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border p-2">
+
+      <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={handleLogout}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-              tooltip="Sign Out"
-            >
-              <LogOut className="h-4 w-4 text-red-600" />
-              <span>Sign Out</span>
+          <SidebarMenuItem className="space-y-5">
+            <div className="hidden flex-col gap-4 group-data-[collapsible=icon]:flex">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src="https://github.com/shadcn.png" />
+                <AvatarFallback>AD</AvatarFallback>
+              </Avatar>
+            </div>
+            <div className="group-data-[collapsible=icon]:hidden">
+              <div className="flex items-center justify-start gap-4">
+                <Avatar>
+                  <AvatarImage src="https://github.com/shadcn.png" />
+                  <AvatarFallback>AD</AvatarFallback>
+                </Avatar>
+                <div>
+                  <h2 className="font-semibold text-sm">Admin User</h2>
+                  <h3 className="text-xs text-slate-500">admin@doctortracker.com</h3>
+                </div>
+              </div>
+            </div>
+            <SidebarMenuButton asChild className="group-data-[collapsible=icon]:w-full">
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="w-full bg-transparent border-secondary group-data-[collapsible=icon]:p-0"
+              >
+                <LogOut className="size-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5 text-red-600" />
+                <span className="group-data-[collapsible=icon]:hidden text-red-600 font-medium">
+                  Sign Out
+                </span>
+              </Button>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

@@ -1,31 +1,75 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import Link from 'next/link';
+import {
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
+import { Separator } from '@/components/ui/separator';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 import { AppSidebar } from '@/components/app-sidebar';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
+  // Dynamic Breadcrumbs resolution
+  const segments = pathname.split('/').filter(Boolean);
+  const currentSegment = segments[0] || 'dashboard';
+
+  const segmentLabels: Record<string, string> = {
+    dashboard: 'Analytics Overview',
+    doctors: 'Doctors Directory',
+    patients: 'Patients Directory',
+  };
+
   return (
     <SidebarProvider defaultOpen={true}>
       <AppSidebar />
       <SidebarInset>
-        <header className="h-16 bg-white border-b border-slate-200/80 px-6 flex items-center justify-between sticky top-0 z-10">
-          <div className="flex items-center gap-3">
-            <SidebarTrigger />
-            <h2 className="text-lg font-semibold text-slate-800 capitalize">
-              {pathname.split('/')[1] || 'Dashboard'}
-            </h2>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-semibold flex items-center justify-center text-xs border border-slate-200">
-              AD
-            </div>
-            <span className="text-sm font-medium text-slate-700 hidden sm:inline">Admin User</span>
-          </div>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4 sticky top-0 z-10">
+          <SidebarTrigger className="-ml-1" />
+          <Separator
+            orientation="vertical"
+            className="mr-2 data-[orientation=vertical]:h-4"
+          />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbLink asChild>
+                  <Link href="/dashboard">Doctor Tracker</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="hidden md:block" />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="capitalize font-semibold">
+                  {segmentLabels[currentSegment] || currentSegment}
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+              {segments.length > 1 && (
+                <>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage className="text-xs text-muted-foreground font-normal">
+                      Detail View ({segments[1]})
+                    </BreadcrumbPage>
+                  </BreadcrumbItem>
+                </>
+              )}
+            </BreadcrumbList>
+          </Breadcrumb>
         </header>
-        <div className="p-6 max-w-7xl w-full mx-auto space-y-6">{children}</div>
+        <div className="flex flex-1 flex-col gap-4 p-6 max-w-7xl w-full mx-auto">
+          {children}
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

@@ -17,6 +17,7 @@ Doctor Tracker is a secure, full-stack admin portal for managing doctors and the
 | Styling | Tailwind CSS v4.3.3 (latest) |
 | Backend framework | Express.js (standalone service, not Next API routes) |
 | Database | MongoDB (Mongoose ODM) |
+| Form | React Hook Form with Zod Validation |
 | Validation | Zod (both frontend form validation and backend request validation) |
 | Auth | JWT (httpOnly cookies) via Express middleware |
 | Charts | Recharts (or another lib of the agent's choice) |

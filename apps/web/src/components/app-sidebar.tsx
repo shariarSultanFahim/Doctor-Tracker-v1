@@ -81,18 +81,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link href="/dashboard">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sky-600 text-white">
-                  <Activity className="size-5" />
-                </div>
-                <div className="grid flex-1 text-sm leading-tight">
-                  <span className="truncate text-sm font-bold">{data.info.title}</span>
-                  <span className="truncate text-xs font-semibold text-sidebar-foreground/60">
-                    {data.info.subtitle}
-                  </span>
-                </div>
-              </Link>
+            <SidebarMenuButton size="lg" render={<Link href="/dashboard" />}>
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sky-600 text-white">
+                <Activity className="size-5" />
+              </div>
+              <div className="grid flex-1 text-sm leading-tight">
+                <span className="truncate text-sm font-bold">{data.info.title}</span>
+                <span className="truncate text-xs font-semibold text-sidebar-foreground/60">
+                  {data.info.subtitle}
+                </span>
+              </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -112,14 +110,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
-                        asChild
+                        render={<Link href={item.url} />}
                         isActive={isActive}
                         className="data-[active=true]:bg-white/25 data-[active=true]:shadow-md data-[active=true]:backdrop-blur-sm data-[active=true]:text-primary-foreground"
                       >
-                        <Link href={item.url}>
-                          <Icon />
-                          <span>{item.title}</span>
-                        </Link>
+                        <Icon />
+                        <span>{item.title}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   );
@@ -151,17 +147,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </div>
               </div>
             </div>
-            <SidebarMenuButton asChild className="group-data-[collapsible=icon]:w-full">
-              <Button
-                variant="outline"
-                onClick={handleLogout}
-                className="w-full bg-transparent border-secondary group-data-[collapsible=icon]:p-0"
-              >
-                <LogOut className="size-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5 text-red-600" />
-                <span className="group-data-[collapsible=icon]:hidden text-red-600 font-medium">
-                  Sign Out
-                </span>
-              </Button>
+            <SidebarMenuButton
+              render={
+                <Button
+                  variant="outline"
+                  onClick={handleLogout}
+                  className="w-full bg-transparent border-secondary group-data-[collapsible=icon]:p-0"
+                />
+              }
+              className="group-data-[collapsible=icon]:w-full"
+            >
+              <LogOut className="size-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5 text-red-600" />
+              <span className="group-data-[collapsible=icon]:hidden text-red-600 font-medium">
+                Sign Out
+              </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

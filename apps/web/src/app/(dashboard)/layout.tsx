@@ -33,40 +33,40 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <AppSidebar variant="inset"/>
+      <AppSidebar />
       <SidebarInset>
-        <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
-          <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
-          <SidebarTrigger className="-ml-1" />
-          <Separator
-            orientation="vertical"
-            className="mr-2 data-[orientation=vertical]:h-4"
-          />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink asChild>
-                  <Link href="/dashboard">Doctor Tracker</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage className="capitalize font-semibold">
-                  {segmentLabels[currentSegment] || currentSegment}
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-              {segments.length > 1 && (
-                <>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage className="text-xs text-muted-foreground font-normal">
-                      Detail View ({segments[1]})
-                    </BreadcrumbPage>
-                  </BreadcrumbItem>
-                </>
-              )}
-            </BreadcrumbList>
-          </Breadcrumb>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b border-slate-200 bg-white px-4 sticky top-0 z-10">
+          <div className="flex w-full items-center gap-2 px-2">
+            <SidebarTrigger className="-ml-1 text-slate-700" />
+            <Separator
+              orientation="vertical"
+              className="mr-2 h-4"
+            />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink asChild>
+                    <Link href="/dashboard" className="font-semibold text-slate-900">Doctor Tracker</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="capitalize font-semibold text-slate-700">
+                    {segmentLabels[currentSegment] || currentSegment}
+                  </BreadcrumbPage>
+                </BreadcrumbItem>
+                {segments.length > 1 && (
+                  <>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      <BreadcrumbPage className="text-xs text-muted-foreground font-normal">
+                        Detail View ({segments[1]})
+                      </BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </>
+                )}
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-6 w-full mx-auto">

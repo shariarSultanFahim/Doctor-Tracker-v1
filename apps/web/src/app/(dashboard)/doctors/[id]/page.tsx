@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { Suspense, use, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQueryState, parseAsString, parseAsInteger } from 'nuqs';
@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Plus, Search, Edit2, Trash2, ArrowLeft, Eye, Mail, Phone, Building, UserCheck } from 'lucide-react';
 
-export default function DoctorDetailPage({ params }: { params: Promise<{ id: string }> }) {
+function DoctorDetailPageContent({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
 
@@ -387,5 +387,13 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
         isLoading={deletePatientMutation.isPending}
       />
     </div>
+  );
+}
+
+export default function DoctorDetailPage(props: { params: Promise<{ id: string }> }) {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Loading doctor details...</div>}>
+      <DoctorDetailPageContent {...props} />
+    </Suspense>
   );
 }

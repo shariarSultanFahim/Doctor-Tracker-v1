@@ -7,7 +7,7 @@ services:
     volumes:
       - mongo-data:/data/db
     healthcheck:
-      test: ["CMD-SHELL", "echo 'db.runCommand(\"ping\").ok' | mongosh --quiet"]
+      test: [ "CMD-SHELL", "echo 'db.runCommand(\"ping\").ok' | mongosh --quiet" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -22,7 +22,7 @@ services:
     environment:
       - PORT=4000
       - MONGO_URI=mongodb://mongo:27017/doctor-tracker
-      - JWT_SECRET=super-secret-doctor-tracker-key-change-in-prod
+      - JWT_SECRET=064d8b0b83ea8a48d8928f22bf8c44a18c8e1ba8c3f0bd7a0c7754aa9db28d01
       - CLIENT_URL=http://localhost:3000
       - NODE_ENV=production
     depends_on:
@@ -38,6 +38,7 @@ services:
       - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:4000/api
+      - NEXT_PUBLIC_OPEN_WEATHER_API_KEY=4b5ef42baa8637596a4297c913c92319
       - NODE_ENV=production
     depends_on:
       - api

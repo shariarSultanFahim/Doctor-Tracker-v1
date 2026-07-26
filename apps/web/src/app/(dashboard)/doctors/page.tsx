@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useQueryState, parseAsString, parseAsInteger } from 'nuqs';
 import { useDebounce } from 'use-debounce';
@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Search, Plus, Eye, Edit2, Trash2 } from 'lucide-react';
 
-export default function DoctorsPage() {
+function DoctorsPageContent() {
   // NUQS URL Search Params State
   const [searchParam, setSearchParam] = useQueryState('search', parseAsString.withDefault(''));
   const [specializationParam, setSpecializationParam] = useQueryState('specialization', parseAsString.withDefault(''));
@@ -333,5 +333,13 @@ export default function DoctorsPage() {
         isLoading={deleteMutation.isPending}
       />
     </div>
+  );
+}
+
+export default function DoctorsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Loading doctors...</div>}>
+      <DoctorsPageContent />
+    </Suspense>
   );
 }

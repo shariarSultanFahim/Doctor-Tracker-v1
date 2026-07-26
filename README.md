@@ -48,6 +48,7 @@ cp .env.example .env
 # ─── Backend (apps/api) ─────────────────────────────
 PORT=4000
 MONGO_URI=mongodb://localhost:27017/doctor-tracker
+CLIENT_URL=http://localhost:3000
 JWT_SECRET=change-me-to-a-random-64-char-hex-string
 NODE_ENV=development
 

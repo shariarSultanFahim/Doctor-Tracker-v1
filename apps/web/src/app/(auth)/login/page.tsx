@@ -25,7 +25,7 @@ export default function LoginPage() {
             <Activity className="h-7 w-7" />
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold text-black tracking-tight">Doctor Tracker</h1>
+            <h1 className="text-2xl font-bold text-black tracking-tight">Doctor Tracker</h1>
             <p className="text-xs text-foreground mt-1 font-medium">Medical Administration Portal</p>
           </div>
           <div className="flex justify-center pt-1">

@@ -326,7 +326,7 @@ export default function PatientSheet({
                 <label className="block text-xs font-semibold text-foreground mb-1">Gender *</label>
                 <select
                   {...register('gender')}
-                  className="w-full px-2 h-9 text-xs border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-full px-2 h-9 text-xs border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 >
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
@@ -338,7 +338,7 @@ export default function PatientSheet({
                 <label className="block text-xs font-semibold text-foreground mb-1">Blood Group</label>
                 <select
                   {...register('bloodGroup')}
-                  className="w-full px-2 h-9 text-xs border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-full px-2 h-9 text-xs border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 >
                   {['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map((bg) => (
                     <option key={bg} value={bg}>
@@ -419,7 +419,7 @@ export default function PatientSheet({
                 {...register('notes')}
                 rows={3}
                 placeholder="Patient symptoms & observation..."
-                className="w-full px-3 py-2 text-xs border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               />
             </div>
           </form>

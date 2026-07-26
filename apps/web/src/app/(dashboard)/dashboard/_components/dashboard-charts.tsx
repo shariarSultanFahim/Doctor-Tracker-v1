@@ -117,15 +117,15 @@ export function PatientsByConditionChart({ data = [] }: { data: DashboardStats['
           return (
             <div
               key={entry.condition || index}
-              className="flex items-center justify-between p-2.5 rounded-lg border border-border/50 bg-muted/20"
+              className="flex items-center justify-between p-2.5 rounded-lg border border-border/60 bg-accent/30 text-foreground"
             >
               <div className="flex items-center gap-2 overflow-hidden">
                 <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                <span className="text-xs font-medium truncate">{entry.condition || 'Other'}</span>
+                <span className="text-xs font-medium truncate text-foreground">{entry.condition || 'Other'}</span>
               </div>
               <div className="text-right shrink-0">
                 <span className="text-xs font-bold text-foreground">{entry.count}</span>
-                <span className="text-[10px] text-muted-foreground ml-1">({percent}%)</span>
+                <span className="text-[10px] text-muted-foreground ml-1 font-semibold">({percent}%)</span>
               </div>
             </div>
           );

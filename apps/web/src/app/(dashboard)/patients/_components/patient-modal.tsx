@@ -90,7 +90,7 @@ export default function PatientModal({
             ) : (
               <select
                 {...register('doctorId')}
-                className="w-full px-3 h-9 border border-input rounded-md text-xs bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full px-3 h-9 border border-border rounded-lg text-xs bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
                 <option value="">Select a Doctor</option>
                 {doctors.map((doc) => (
@@ -129,7 +129,7 @@ export default function PatientModal({
               <label className="block text-xs font-semibold text-foreground mb-1">Gender</label>
               <select
                 {...register('gender')}
-                className="w-full px-3 h-9 border border-input rounded-md text-xs bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full px-3 h-9 border border-border rounded-lg text-xs bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -174,7 +174,7 @@ export default function PatientModal({
               {...register('notes')}
               rows={3}
               placeholder="Diagnosis details, prescription notes..."
-              className="w-full px-3 py-2 border border-input rounded-md text-xs bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full px-3 py-2 border border-border rounded-lg text-xs bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             />
           </div>
         </form>

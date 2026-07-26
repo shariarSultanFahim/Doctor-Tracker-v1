@@ -118,11 +118,11 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="w-36">
+          <div className="w-36 sm:w-40">
             <DatePicker value={from} onChange={setFrom} placeholder="From date" />
           </div>
           <span className="text-xs text-muted-foreground">to</span>
-          <div className="w-36">
+          <div className="w-36 sm:w-40">
             <DatePicker value={to} onChange={setTo} placeholder="To date" />
           </div>
           {(from || to) && (
@@ -156,7 +156,7 @@ export default function DashboardPage() {
 
         {/* Swapped chart 2: Top 10 Doctors by Patients */}
         <div className="glass-card p-5 rounded-xl border border-border shadow-sm space-y-4">
-          <h3 className="text-sm font-semibold text-foreground">Top 10 Doctors by Patients</h3>
+          <h3 className="text-sm font-semibold text-foreground">Top 5 Doctors by Patients</h3>
           <PatientsPerDoctorChart data={stats.patientsPerDoctor} />
         </div>
       </div>

@@ -47,13 +47,13 @@ export default function DatePicker({
           variant="outline"
           disabled={disabled}
           className={cn(
-            'w-full justify-start text-left font-normal border-border bg-background hover:bg-accent hover:text-accent-foreground',
+            'w-full justify-start text-left font-normal border-border bg-background hover:bg-accent hover:text-accent-foreground min-w-0',
             !selectedDate && 'text-muted-foreground',
             className
           )}
         >
-          <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-          {selectedDate ? format(selectedDate, 'PPP') : <span>{placeholder}</span>}
+          <CalendarIcon className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
+          <span className="truncate">{selectedDate ? format(selectedDate, 'PP') : placeholder}</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0 glass-card" align="start">

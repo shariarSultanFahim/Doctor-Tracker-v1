@@ -10,7 +10,6 @@ import { useDoctorPatients, useCreatePatient, useUpdatePatient, useDeletePatient
 import { Patient } from '@doctor-tracker/shared-types';
 import PatientSheet, { PatientFormData } from '../../patients/_components/patient-sheet';
 import DoctorSheet, { DoctorFormData } from '../../doctors/_components/doctor-sheet';
-import AddPatientModal from './_components/add-patient-modal';
 import ConfirmDeleteDialog from '@/components/shared/confirm-delete-dialog';
 import AvatarWithFallback from '@/components/shared/avatar-with-fallback';
 import DataTable, { ColumnDef } from '@/components/shared/data-table/data-table';
@@ -33,7 +32,6 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
 
   const [isPatientSheetOpen, setIsPatientSheetOpen] = useState(false);
   const [isDoctorSheetOpen, setIsDoctorSheetOpen] = useState(false);
-  const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
 
   const [deleteDoctorConfirm, setDeleteDoctorConfirm] = useState(false);
@@ -95,6 +93,18 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
       setSelectedPatient(null);
     } catch (err: any) {
       toast.error(err.response?.data?.error || 'Operation failed');
+    }
+  };
+
+  const handleAssignExistingPatient = async (patientId: string, doctorId: string) => {
+    try {
+      await updatePatientMutation.mutateAsync({
+        id: patientId,
+        data: { doctorId },
+      });
+      toast.success(`Patient assigned to Dr. ${doctor?.name || 'Doctor'}`);
+    } catch (err: any) {
+      toast.error('Failed to assign patient');
     }
   };
 
@@ -286,7 +296,13 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
             <h2 className="text-lg font-bold text-foreground">Assigned Patients Roster</h2>
             <p className="text-xs text-muted-foreground">Manage and assign patient cases under Dr. {doctor.name}</p>
           </div>
-          <Button onClick={() => setIsAddPatientModalOpen(true)} className="gap-2 text-xs">
+          <Button
+            onClick={() => {
+              setSelectedPatient(null);
+              setIsPatientSheetOpen(true);
+            }}
+            className="gap-2 text-xs"
+          >
             <Plus className="h-4 w-4" />
             Add Patient
           </Button>
@@ -322,21 +338,9 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
             total: pagination.total,
             onPageChange: (p) => setPageParam(p),
           }}
-          emptyMessage="No patients assigned under Dr. {doctor.name}."
+          emptyMessage={`No patients assigned under Dr. ${doctor.name}.`}
         />
       </div>
-
-      {/* Add Patient Modal (Search existing or create new) */}
-      <AddPatientModal
-        isOpen={isAddPatientModalOpen}
-        onClose={() => setIsAddPatientModalOpen(false)}
-        doctorId={doctor._id}
-        doctorName={doctor.name}
-        onAddNewClick={() => {
-          setSelectedPatient(null);
-          setIsPatientSheetOpen(true);
-        }}
-      />
 
       {/* Edit Doctor Sheet */}
       <DoctorSheet
@@ -347,7 +351,7 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
         isLoading={updateDoctorMutation.isPending}
       />
 
-      {/* Create / Edit Patient Sheet */}
+      {/* Create / Assign Patient Sheet with Existing/New Patient Tabs */}
       <PatientSheet
         isOpen={isPatientSheetOpen}
         onClose={() => {
@@ -355,8 +359,11 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
           setSelectedPatient(null);
         }}
         onSubmit={handleCreateOrUpdatePatient}
+        onAssignExistingPatient={handleAssignExistingPatient}
         initialData={selectedPatient || undefined}
+        doctors={doctor ? [doctor] : []}
         defaultDoctorId={doctor._id}
+        showToggleMode={!selectedPatient}
         isLoading={createPatientMutation.isPending || updatePatientMutation.isPending}
       />
 

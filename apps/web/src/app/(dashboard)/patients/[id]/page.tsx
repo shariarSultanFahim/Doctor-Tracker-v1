@@ -1,33 +1,32 @@
 'use client';
 
-import { use, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { usePatient, useUpdatePatient, useDeletePatient } from '@/hooks/use-patients';
-import { useDoctors } from '@/hooks/use-doctors';
-import PatientSheet, { PatientFormData } from '../_components/patient-sheet';
 import AvatarWithFallback from '@/components/shared/avatar-with-fallback';
 import ConfirmDeleteDialog from '@/components/shared/confirm-delete-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { useDoctors } from '@/hooks/use-doctors';
+import { useDeletePatient, usePatient, useUpdatePatient } from '@/hooks/use-patients';
 import {
-  User,
-  Calendar,
-  Phone,
-  Heart,
-  FileText,
-  Edit2,
-  Trash2,
-  ArrowLeft,
-  Loader2,
-  Building,
-  ShieldAlert,
   Activity,
-  MapPin,
   AlertTriangle,
+  ArrowLeft,
+  Calendar,
+  Edit2,
+  FileText,
+  Heart,
   History,
+  Loader2,
+  MapPin,
+  Phone,
+  ShieldAlert,
+  Trash2,
+  User
 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { use, useState } from 'react';
+import { toast } from 'sonner';
+import PatientSheet, { PatientFormData } from '../_components/patient-sheet';
 
 export default function PatientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -91,7 +90,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   const attendingDoctor = typeof doctorVal === 'object' ? doctorVal : null;
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 w-full">
       {/* Back Button & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <Link

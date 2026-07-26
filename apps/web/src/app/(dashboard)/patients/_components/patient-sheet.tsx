@@ -14,6 +14,7 @@ import AvatarWithFallback from '@/components/shared/avatar-with-fallback';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, UserPlus, UserCheck, Heart, Phone } from 'lucide-react';
 import { toast } from 'sonner';
@@ -31,8 +32,8 @@ export const patientFormSchema = z.object({
   bloodGroup: z.string().optional(),
   emergencyContact: z.string().optional(),
   address: z.string().optional(),
-  allergies: z.string().optional(), // Comma separated in UI
-  medicalHistory: z.string().optional(), // Comma separated in UI
+  allergies: z.string().optional(),
+  medicalHistory: z.string().optional(),
 });
 
 export type PatientFormDataInput = z.infer<typeof patientFormSchema>;
@@ -70,15 +71,12 @@ export default function PatientSheet({
   );
   const [selectedExistingPatientId, setSelectedExistingPatientId] = useState<string>('');
 
-  // Fetch all patients for existing patient selection
   const { data: allPatientsRes } = usePatients({ limit: 1000 });
   const allPatients = allPatientsRes?.data || [];
 
-  // Fetch all doctors if not provided by parent
   const { data: allDoctorsRes } = useDoctors({ limit: 1000 });
   const availableDoctors = doctors.length > 0 ? doctors : (allDoctorsRes?.data || []);
 
-  // Filter out patients who are already assigned to defaultDoctorId
   const unassignedPatients = allPatients.filter((p) => {
     if (!defaultDoctorId) return true;
     const assignedDocId = typeof p.doctorId === 'object' && p.doctorId ? p.doctorId._id : p.doctorId;
@@ -178,7 +176,6 @@ export default function PatientSheet({
           </SheetDescription>
         </SheetHeader>
 
-        {/* Optional Toggle Tabs for Existing vs New Patient */}
         {showToggleMode && !initialData && (
           <div className="pt-3">
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
@@ -195,7 +192,6 @@ export default function PatientSheet({
         )}
 
         {activeTab === 'existing' && showToggleMode && !initialData ? (
-          /* Existing Patient Selection Mode */
           <div className="space-y-4 my-6 flex-1">
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1.5">
@@ -212,7 +208,6 @@ export default function PatientSheet({
               </p>
             </div>
 
-            {/* Selected Patient Preview Card */}
             {selectedPatientObj && (
               <div className="glass-card p-4 rounded-xl border border-primary/30 bg-primary/5 space-y-2">
                 <div className="flex items-center gap-3">
@@ -241,9 +236,7 @@ export default function PatientSheet({
             )}
           </div>
         ) : (
-          /* New Patient Registration / Edit Form Mode */
           <form id="patient-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 my-4">
-            {/* Avatar Upload */}
             <div className="flex flex-col items-center gap-2">
               <div className="relative group cursor-pointer">
                 <AvatarWithFallback
@@ -268,7 +261,6 @@ export default function PatientSheet({
               <span className="text-[11px] text-muted-foreground">Click photo to update avatar</span>
             </div>
 
-            {/* Attending Doctor Combobox */}
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1">Attending Doctor *</label>
               {defaultDoctorId ? (
@@ -295,39 +287,37 @@ export default function PatientSheet({
               {errors.doctorId && <p className="text-xs text-destructive mt-1">{errors.doctorId.message}</p>}
             </div>
 
-            {/* Name & Phone */}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">Full Name *</label>
-                <input
+                <Input
                   type="text"
                   {...register('name')}
                   placeholder="Patient name"
-                  className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="h-9 text-xs"
                 />
                 {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">Contact Phone *</label>
-                <input
+                <Input
                   type="text"
                   {...register('phone')}
                   placeholder="+1 555-0192"
-                  className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="h-9 text-xs"
                 />
                 {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone.message}</p>}
               </div>
             </div>
 
-            {/* Age, Gender & Blood Group */}
             <div className="grid grid-cols-3 gap-2">
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">Age *</label>
-                <input
+                <Input
                   type="number"
                   {...register('age')}
-                  className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="h-9 text-xs"
                 />
                 {errors.age && <p className="text-xs text-destructive mt-1">{errors.age.message}</p>}
               </div>
@@ -336,7 +326,7 @@ export default function PatientSheet({
                 <label className="block text-xs font-semibold text-foreground mb-1">Gender *</label>
                 <select
                   {...register('gender')}
-                  className="w-full px-2 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="w-full px-2 h-9 text-xs border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
@@ -348,7 +338,7 @@ export default function PatientSheet({
                 <label className="block text-xs font-semibold text-foreground mb-1">Blood Group</label>
                 <select
                   {...register('bloodGroup')}
-                  className="w-full px-2 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="w-full px-2 h-9 text-xs border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   {['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map((bg) => (
                     <option key={bg} value={bg}>
@@ -359,15 +349,14 @@ export default function PatientSheet({
               </div>
             </div>
 
-            {/* Condition & Visit Date */}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">Condition / Diagnosis *</label>
-                <input
+                <Input
                   type="text"
                   {...register('condition')}
                   placeholder="e.g. Hypertension"
-                  className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="h-9 text-xs"
                 />
                 {errors.condition && <p className="text-xs text-destructive mt-1">{errors.condition.message}</p>}
               </div>
@@ -384,56 +373,53 @@ export default function PatientSheet({
               </div>
             </div>
 
-            {/* Emergency Contact & Address */}
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1">Emergency Contact</label>
-              <input
+              <Input
                 type="text"
                 {...register('emergencyContact')}
                 placeholder="+1 555-0911 (Relative)"
-                className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="h-9 text-xs"
               />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1">Home Address</label>
-              <input
+              <Input
                 type="text"
                 {...register('address')}
                 placeholder="Full address"
-                className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="h-9 text-xs"
               />
             </div>
 
-            {/* Allergies & Medical History (Comma separated) */}
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1">Known Allergies (Comma-separated)</label>
-              <input
+              <Input
                 type="text"
                 {...register('allergies')}
                 placeholder="e.g. Penicillin, Peanuts"
-                className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="h-9 text-xs"
               />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1">Surgical / Medical History (Comma-separated)</label>
-              <input
+              <Input
                 type="text"
                 {...register('medicalHistory')}
                 placeholder="e.g. Appendectomy (2018), Knee Surgery (2021)"
-                className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="h-9 text-xs"
               />
             </div>
 
-            {/* Notes */}
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1">Clinical Notes</label>
               <textarea
                 {...register('notes')}
                 rows={3}
                 placeholder="Patient symptoms & observation..."
-                className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full px-3 py-2 text-xs border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
           </form>

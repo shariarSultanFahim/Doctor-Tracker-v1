@@ -97,13 +97,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" render={<Link href="/dashboard" />}>
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <SidebarMenuButton size="lg" className="group-data-[collapsible=icon]:!p-0" render={<Link href="/dashboard" />}>
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shrink-0">
                 <Activity className="size-5" />
               </div>
-              <div className="grid flex-1 text-sm leading-tight">
-                <span className="truncate text-sm font-bold">{data.info.title}</span>
-                <span className="truncate text-xs font-semibold text-sidebar-foreground/60">
+              <div className="grid flex-1 text-sm leading-tight group-data-[collapsible=icon]:hidden">
+                <span className="truncate text-sm font-bold text-sidebar-foreground group-hover/menu-button:text-sidebar-accent-foreground">
+                  {data.info.title}
+                </span>
+                <span className="truncate text-xs font-semibold text-sidebar-foreground/70 group-hover/menu-button:text-sidebar-accent-foreground/80">
                   {data.info.subtitle}
                 </span>
               </div>

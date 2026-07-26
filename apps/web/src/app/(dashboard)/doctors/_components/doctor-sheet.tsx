@@ -7,6 +7,7 @@ import { Doctor } from '@doctor-tracker/shared-types';
 import AvatarWithFallback from '@/components/shared/avatar-with-fallback';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -111,55 +112,55 @@ export default function DoctorSheet({ isOpen, onClose, onSubmit, initialData, is
 
           <div>
             <label className="block text-xs font-semibold text-foreground mb-1">Full Name *</label>
-            <input
+            <Input
               type="text"
               {...register('name')}
               placeholder="e.g. Dr. Sarah Jenkins"
-              className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="h-9 text-xs"
             />
             {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-foreground mb-1">Specialization *</label>
-            <input
+            <Input
               type="text"
               {...register('specialization')}
               placeholder="e.g. Cardiology"
-              className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="h-9 text-xs"
             />
             {errors.specialization && <p className="text-xs text-destructive mt-1">{errors.specialization.message}</p>}
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-foreground mb-1">Hospital / Clinic *</label>
-            <input
+            <Input
               type="text"
               {...register('hospital')}
               placeholder="e.g. St. Jude Hospital"
-              className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="h-9 text-xs"
             />
             {errors.hospital && <p className="text-xs text-destructive mt-1">{errors.hospital.message}</p>}
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-foreground mb-1">Phone Number *</label>
-            <input
+            <Input
               type="text"
               {...register('phone')}
               placeholder="+1 555-0199"
-              className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="h-9 text-xs"
             />
             {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone.message}</p>}
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-foreground mb-1">Email Address *</label>
-            <input
+            <Input
               type="email"
               {...register('email')}
               placeholder="doctor@hospital.com"
-              className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="h-9 text-xs"
             />
             {errors.email && <p className="text-xs text-destructive mt-1">{errors.email.message}</p>}
           </div>

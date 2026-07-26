@@ -4,7 +4,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Doctor } from '@doctor-tracker/shared-types';
-import { X, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Loader2 } from 'lucide-react';
 
 const doctorSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -48,89 +51,76 @@ export default function DoctorModal({ isOpen, onClose, onSubmit, initialData, ti
         },
   });
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl border border-slate-100 max-w-md w-full p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md glass-card">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form id="doctor-modal-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4 my-2">
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Full Name</label>
-            <input
+            <label className="block text-xs font-semibold text-foreground mb-1">Full Name</label>
+            <Input
               {...register('name')}
               placeholder="Dr. Sarah Jenkins"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+              className="h-9 text-xs"
             />
-            {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
+            {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Specialization</label>
-            <input
+            <label className="block text-xs font-semibold text-foreground mb-1">Specialization</label>
+            <Input
               {...register('specialization')}
               placeholder="Cardiology"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+              className="h-9 text-xs"
             />
-            {errors.specialization && <p className="text-xs text-red-500 mt-1">{errors.specialization.message}</p>}
+            {errors.specialization && <p className="text-xs text-destructive mt-1">{errors.specialization.message}</p>}
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Hospital / Clinic</label>
-            <input
+            <label className="block text-xs font-semibold text-foreground mb-1">Hospital / Clinic</label>
+            <Input
               {...register('hospital')}
               placeholder="City General Hospital"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+              className="h-9 text-xs"
             />
-            {errors.hospital && <p className="text-xs text-red-500 mt-1">{errors.hospital.message}</p>}
+            {errors.hospital && <p className="text-xs text-destructive mt-1">{errors.hospital.message}</p>}
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Phone Number</label>
-            <input
+            <label className="block text-xs font-semibold text-foreground mb-1">Phone Number</label>
+            <Input
               {...register('phone')}
               placeholder="+1 555-0192"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+              className="h-9 text-xs"
             />
-            {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p>}
+            {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone.message}</p>}
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Email Address</label>
-            <input
+            <label className="block text-xs font-semibold text-foreground mb-1">Email Address</label>
+            <Input
               type="email"
               {...register('email')}
               placeholder="s.jenkins@hospital.org"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+              className="h-9 text-xs"
             />
-            {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
-          </div>
-
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-4 py-2 text-sm font-medium bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
-            >
-              {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-              Save Doctor
-            </button>
+            {errors.email && <p className="text-xs text-destructive mt-1">{errors.email.message}</p>}
           </div>
         </form>
-      </div>
-    </div>
+
+        <DialogFooter className="gap-2 pt-2">
+          <Button type="button" variant="outline" size="sm" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" form="doctor-modal-form" size="sm" disabled={isSubmitting} className="gap-2">
+            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+            Save Doctor
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

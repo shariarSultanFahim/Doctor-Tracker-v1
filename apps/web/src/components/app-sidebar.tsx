@@ -75,7 +75,6 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -86,10 +85,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       toast.error('Logout failed');
     }
   };
-
-  const userName = user?.name || 'Admin User';
-  const userEmail = user?.email || 'admin@doctortracker.com';
-  const userAvatar = user?.avatar;
 
   return (
     <Sidebar variant="inset" collapsible="icon" {...props}>
@@ -147,17 +142,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              render={
-                <Button
-                  variant="outline"
-                  onClick={handleLogout}
-                  className="w-full bg-transparent border-border group-data-[collapsible=icon]:p-0 hover:bg-destructive/10"
-                />
-              }
-              className="group-data-[collapsible=icon]:w-full"
+              variant="outline"
+              onClick={handleLogout}
+            // className="rounded-full transition-all duration-200 text-destructive hover:bg-destructive/15 hover:text-destructive font-semibold group-data-[collapsible=icon]:w-full"
             >
-              <LogOut className="size-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5 text-destructive" />
-              <span className="group-data-[collapsible=icon]:hidden text-destructive font-medium">
+              <LogOut className="size-4 shrink-0 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5 text-destructive" />
+              <span className="group-data-[collapsible=icon]:hidden text-destructive font-semibold">
                 Sign Out
               </span>
             </SidebarMenuButton>

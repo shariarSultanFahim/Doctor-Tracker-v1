@@ -130,7 +130,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       <SidebarMenuButton
                         render={<Link href={item.url} />}
                         isActive={isActive}
-                        className="data-[active=true]:bg-primary/20 data-[active=true]:text-primary data-[active=true]:font-bold"
+                        className="rounded-full transition-all duration-200 data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-accent-foreground data-[active=true]:font-semibold"
                       >
                         <Icon />
                         <span>{item.title}</span>

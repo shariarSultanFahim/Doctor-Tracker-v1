@@ -1,15 +1,7 @@
 'use client';
 
-import * as React from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import {
-  LayoutDashboard,
-  UserCheck,
-  Users,
-  LogOut,
-  Activity,
-} from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   Sidebar,
   SidebarContent,
@@ -23,10 +15,18 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { logout } from '@/lib/api/auth';
 import { useAuth } from '@/hooks/use-auth';
+import { logout } from '@/lib/api/auth';
+import {
+  Activity,
+  LayoutDashboard,
+  LogOut,
+  UserCheck,
+  Users,
+} from 'lucide-react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import * as React from 'react';
 import { toast } from 'sonner';
 
 const data = {

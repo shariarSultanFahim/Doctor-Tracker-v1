@@ -13,7 +13,7 @@ const userSchema = new Schema<UserDocument>(
     role: { type: String, enum: ['admin'], default: 'admin' },
     avatar: { type: String },
     tablePreferences: { type: Schema.Types.Mixed, default: {} },
-    theme: { type: String, enum: ['light', 'dark', 'system'], default: 'system' },
+    theme: { type: String, enum: ['light', 'dark', 'system'], default: 'light' },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );

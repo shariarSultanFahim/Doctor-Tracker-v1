@@ -269,7 +269,9 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
             <span className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
               Assigned Patients
             </span>
-            <span className="text-3xl font-extrabold text-foreground">{doctor.patientCount || 0}</span>
+            <span className="text-3xl font-extrabold text-foreground font-mono">
+              {pagination?.total !== undefined ? pagination.total : (doctor.patientCount || 0)}
+            </span>
           </div>
           <div className="p-2.5 rounded-full bg-primary/10 text-primary">
             <UserCheck className="h-6 w-6" />

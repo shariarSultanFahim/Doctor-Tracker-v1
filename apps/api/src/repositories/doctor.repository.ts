@@ -1,4 +1,5 @@
 import { Doctor, DoctorDocument } from '../models/doctor.model.js';
+import { Patient } from '../models/patient.model.js';
 import { PaginatedResponse } from '@doctor-tracker/shared-types';
 
 export interface DoctorQueryParams {
@@ -96,7 +97,10 @@ export class DoctorRepository {
   }
 
   async findById(id: string): Promise<DoctorDocument | null> {
-    return Doctor.findById(id);
+    const doc = await Doctor.findById(id).lean();
+    if (!doc) return null;
+    const patientCount = await Patient.countDocuments({ doctorId: id });
+    return { ...doc, patientCount } as any;
   }
 
   async create(data: Partial<DoctorDocument>): Promise<DoctorDocument> {

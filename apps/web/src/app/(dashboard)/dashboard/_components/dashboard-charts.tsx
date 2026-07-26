@@ -58,12 +58,23 @@ export function PatientsPerDoctorChart({ data = [] }: { data: DashboardStats['pa
   return (
     <div className="h-64 w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+        <BarChart data={data} barCategoryGap="15%" margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <defs>
+            <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={1} />
+              <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0.65} />
+            </linearGradient>
+          </defs>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" strokeOpacity={0.5} />
           <XAxis dataKey="doctorName" tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} axisLine={false} tickLine={false} />
           <YAxis tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} axisLine={false} tickLine={false} />
           <Tooltip contentStyle={tooltipStyle} />
-          <Bar dataKey="patientCount" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
+          <Bar
+            dataKey="patientCount"
+            fill="url(#barGradient)"
+            radius={[28, 28, 0, 0]}
+            maxBarSize={64}
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>

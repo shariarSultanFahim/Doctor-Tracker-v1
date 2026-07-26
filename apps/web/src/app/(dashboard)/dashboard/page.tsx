@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useDashboardSummary, useDashboardStats } from '@/hooks/use-dashboard';
 import { useAuth } from '@/hooks/use-auth';
+import { useWeather } from '@/hooks/use-weather';
 import { UserCheck, Users, Calculator, UserPlus } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DatePicker from '@/components/shared/date-picker';
@@ -31,6 +32,7 @@ export default function DashboardPage() {
   const [greeting, setGreeting] = useState('Good Morning!');
 
   const { user } = useAuth();
+  const { data: weather, isLoading: isWeatherLoading } = useWeather();
   const { data: summaryRes, isLoading: isSummaryLoading } = useDashboardSummary();
   const { data: statsRes } = useDashboardStats({ from, to, bucket });
 
@@ -172,8 +174,13 @@ export default function DashboardPage() {
         <div className="xl:col-span-4 order-1 xl:order-2 glass-card p-4 rounded-2xl border border-border shadow-sm flex flex-col justify-between space-y-2.5">
           <div className="flex items-start justify-between">
             <div className="space-y-0.5">
-              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-accent/60 text-[11px] font-semibold text-accent-foreground border border-border/40">
-                🌤️ 24°C
+              <div
+                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-accent/60 text-[11px] font-semibold text-accent-foreground border border-border/40"
+                title={weather?.description ? `${weather.description} (${weather.city})` : 'Weather'}
+              >
+                <span>{weather ? weather.emoji : '🌤️'}</span>
+                <span>{isWeatherLoading ? '...' : `${weather?.temp ?? 24}°C`}</span>
+                {weather?.city && <span className="text-[10px] opacity-70 font-normal ml-0.5">({weather.city})</span>}
               </div>
               <p className="text-[11px] font-medium text-muted-foreground pt-1">{greeting}</p>
             </div>

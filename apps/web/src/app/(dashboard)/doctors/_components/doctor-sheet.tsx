@@ -78,7 +78,7 @@ export default function DoctorSheet({ isOpen, onClose, onSubmit, initialData, is
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-md glass-card flex flex-col justify-between overflow-y-auto">
+      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col justify-between overflow-y-auto">
         <SheetHeader>
           <SheetTitle>{initialData ? 'Edit Doctor Profile' : 'Add New Doctor'}</SheetTitle>
           <SheetDescription>Configure doctor contact and hospital specialization details</SheetDescription>

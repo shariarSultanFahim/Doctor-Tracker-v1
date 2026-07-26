@@ -42,10 +42,10 @@ export default function ConfirmDeleteDialog({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <AlertDialogContent className="glass-card sm:max-w-md">
+      <AlertDialogContent className="sm:max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-destructive font-bold text-lg">{title}</AlertDialogTitle>
-          <AlertDialogDescription className="text-muted-foreground text-sm">
+          <AlertDialogTitle className="text-rose-500 font-bold text-lg">{title}</AlertDialogTitle>
+          <AlertDialogDescription className="text-foreground/80 text-xs font-medium leading-relaxed mt-1">
             {description}
           </AlertDialogDescription>
         </AlertDialogHeader>

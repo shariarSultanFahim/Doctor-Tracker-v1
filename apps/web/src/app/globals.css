@@ -16,7 +16,7 @@
   --secondary-foreground: oklch(0.3284 0.0139 211.1040);
   --muted: oklch(0.9322 0.0108 189.8131);
   --muted-foreground: oklch(0.5956 0.0381 257.8663);
-  --accent: oklch(0.8828 0.0437 194.5949);
+  --accent: #C3D9DB;
   --accent-foreground: oklch(0.6552 0.1105 212.1665);
   --destructive: oklch(0.6137 0.2039 25.5645);
   --destructive-foreground: oklch(1.0000 0 0);
@@ -237,4 +237,75 @@
   select option {
     @apply bg-popover text-popover-foreground;
   }
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(17px);
+  -webkit-backdrop-filter: blur(17px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 0px 0px rgba(255, 255, 255, 0);
+  overflow: hidden;
+}
+
+.glass-card:not(.fixed) {
+  position: relative;
+}
+
+.dark .glass-card {
+  background: rgba(20, 26, 38, 0.45);
+  backdrop-filter: blur(17px);
+  -webkit-backdrop-filter: blur(17px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.8),
+      transparent);
+  pointer-events: none;
+}
+
+.dark .glass-card::before {
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.25),
+      transparent);
+}
+
+.glass-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.8),
+      transparent,
+      rgba(255, 255, 255, 0.3));
+  pointer-events: none;
+}
+
+.dark .glass-card::after {
+  background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.25),
+      transparent,
+      rgba(255, 255, 255, 0.1));
 }

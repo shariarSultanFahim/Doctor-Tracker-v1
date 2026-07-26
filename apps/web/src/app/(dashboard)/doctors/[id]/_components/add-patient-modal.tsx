@@ -49,7 +49,7 @@ export default function AddPatientModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="glass-card sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-foreground">Add Patient to Roster</DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">

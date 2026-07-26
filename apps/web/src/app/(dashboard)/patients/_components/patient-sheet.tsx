@@ -160,7 +160,7 @@ export default function PatientSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-md glass-card flex flex-col justify-between overflow-y-auto">
+      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col justify-between overflow-y-auto">
         <SheetHeader>
           <SheetTitle>
             {initialData

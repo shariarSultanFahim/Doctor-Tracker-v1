@@ -12,6 +12,7 @@
   "dependencies": {
     "@base-ui/react": "^1.2.0",
     "@doctor-tracker/shared-types": "*",
+    "@doctor-tracker/shared-validators": "*",
     "@hookform/resolvers": "^5.4.3",
     "@radix-ui/react-alert-dialog": "^1.1.23",
     "@radix-ui/react-avatar": "^1.2.6",

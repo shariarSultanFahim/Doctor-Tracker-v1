@@ -2,24 +2,13 @@
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { changePasswordSchema, ChangePasswordFormData } from '@doctor-tracker/shared-validators';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Lock, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export const changePasswordSchema = z
-  .object({
-    currentPassword: z.string().min(1, 'Current password is required'),
-    newPassword: z.string().min(6, 'New password must be at least 6 characters'),
-    confirmPassword: z.string().min(1, 'Please confirm your new password'),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  });
-
-export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
+export { changePasswordSchema, type ChangePasswordFormData };
 
 export default function ChangePasswordForm() {
   const { updateProfile } = useAuth();

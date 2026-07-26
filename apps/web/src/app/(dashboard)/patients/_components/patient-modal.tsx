@@ -4,21 +4,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Patient, Doctor } from '@doctor-tracker/shared-types';
+import { patientFormSchema as patientSchema } from '@doctor-tracker/shared-validators';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
-
-const patientSchema = z.object({
-  doctorId: z.string().min(1, 'Doctor is required'),
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  age: z.coerce.number().int().min(0).max(120, 'Age must be 0-120'),
-  gender: z.enum(['Male', 'Female', 'Other']),
-  condition: z.string().min(1, 'Condition is required'),
-  phone: z.string().min(5, 'Valid phone number is required'),
-  visitDate: z.string().min(1, 'Visit date is required'),
-  notes: z.string().max(500, 'Notes max 500 chars').optional(),
-});
 
 type PatientFormData = z.infer<typeof patientSchema>;
 

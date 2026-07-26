@@ -2,19 +2,13 @@
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { profileInfoSchema, ProfileInfoFormData } from '@doctor-tracker/shared-validators';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { User, Mail, Save, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export const profileInfoSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  avatar: z.string().optional(),
-});
-
-export type ProfileInfoFormData = z.infer<typeof profileInfoSchema>;
+export { profileInfoSchema, type ProfileInfoFormData };
 
 interface ProfileInfoFormProps {
   avatar: string;

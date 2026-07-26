@@ -2,8 +2,8 @@
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Doctor } from '@doctor-tracker/shared-types';
+import { doctorFormSchema, DoctorFormData } from '@doctor-tracker/shared-validators';
 import AvatarWithFallback from '@/components/shared/avatar-with-fallback';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -11,16 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export const doctorFormSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  specialization: z.string().min(1, 'Specialization is required'),
-  hospital: z.string().min(1, 'Hospital is required'),
-  phone: z.string().min(5, 'Valid phone number is required'),
-  email: z.string().email('Invalid email address'),
-  avatar: z.string().optional(),
-});
-
-export type DoctorFormData = z.infer<typeof doctorFormSchema>;
+export { doctorFormSchema, type DoctorFormData };
 
 interface DoctorSheetProps {
   isOpen: boolean;

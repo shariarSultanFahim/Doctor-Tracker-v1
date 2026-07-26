@@ -3,8 +3,12 @@
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Patient, Doctor } from '@doctor-tracker/shared-types';
+import {
+  patientFormSchema,
+  PatientFormDataInput,
+  PatientFormData,
+} from '@doctor-tracker/shared-validators';
 import { usePatients } from '@/hooks/use-patients';
 import { useDoctors } from '@/hooks/use-doctors';
 import DoctorCombobox from '@/components/shared/doctor-combobox';
@@ -19,29 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, UserPlus, UserCheck, Heart, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 
-export const patientFormSchema = z.object({
-  doctorId: z.string().min(1, 'Attending Doctor selection is required'),
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  age: z.coerce.number().int().min(0).max(120, 'Age must be between 0 and 120'),
-  gender: z.enum(['Male', 'Female', 'Other']),
-  condition: z.string().min(1, 'Condition is required'),
-  phone: z.string().min(5, 'Valid phone number is required'),
-  visitDate: z.string().min(1, 'Visit date is required'),
-  notes: z.string().max(500, 'Notes max 500 characters').optional(),
-  avatar: z.string().optional(),
-  bloodGroup: z.string().optional(),
-  emergencyContact: z.string().optional(),
-  address: z.string().optional(),
-  allergies: z.string().optional(),
-  medicalHistory: z.string().optional(),
-});
-
-export type PatientFormDataInput = z.infer<typeof patientFormSchema>;
-
-export interface PatientFormData extends Omit<PatientFormDataInput, 'allergies' | 'medicalHistory'> {
-  allergies?: string[];
-  medicalHistory?: string[];
-}
+export { patientFormSchema, type PatientFormDataInput, type PatientFormData };
 
 interface PatientSheetProps {
   isOpen: boolean;

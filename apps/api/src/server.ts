@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 
 import { connectDB } from './config/db.js';
 import { ensureIndexes } from './indexes/ensure-indexes.js';
+import { seedIfEmpty } from './scripts/seed.js';
 import authRoutes from './routes/auth.routes.js';
 import doctorRoutes from './routes/doctor.routes.js';
 import patientRoutes from './routes/patient.routes.js';
@@ -39,7 +40,8 @@ app.use(errorHandler);
 export default app;
 
 if (process.env.NODE_ENV !== 'test') {
-  connectDB().then(() => {
+  connectDB().then(async () => {
+    await seedIfEmpty().catch(console.error);
     ensureIndexes().catch(console.error);
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

@@ -294,11 +294,6 @@ The shared type package (`packages/shared-types`) exports interfaces like `Docto
 ---
 
 ## Visual Evidence
-
-> **Screenshots will be added here.**
-
-### Desktop Views
-
 ![Login Screen UI Screenshot](<UI Screenshots/Doctor Tracker Login Screen.png>)
 ![Doctor Directory Screen UI Screenshot](<UI Screenshots/Doctor Tracker Doctors Directory Screen.png>)
 ![Doctor Details Screen UI Screenshot](<UI Screenshots/Doctor Tracker Doctor Details Screen.png>)

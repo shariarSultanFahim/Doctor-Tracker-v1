@@ -171,9 +171,10 @@ export default function DashboardPage() {
         </div>
 
         {/* Right Side: Greetings Card (Order 1 on mobile, Order 2 on desktop) */}
-        <div className="xl:col-span-4 order-1 xl:order-2 glass-card p-4 rounded-2xl border border-border shadow-sm flex flex-col justify-between space-y-2.5">
-          <div className="flex items-start justify-between">
-            <div className="space-y-0.5">
+        <div className="xl:col-span-4 order-1 xl:order-2 glass-card p-4 sm:p-5 rounded-2xl border border-border shadow-sm flex items-center justify-between gap-4">
+          {/* Left Column Info */}
+          <div className="flex flex-col justify-between space-y-3 flex-1 min-w-0">
+            <div className="space-y-1">
               <div
                 className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-accent/60 text-[11px] font-semibold text-accent-foreground border border-border/40"
                 title={weather?.description ? `${weather.description} (${weather.city})` : 'Weather'}
@@ -182,43 +183,15 @@ export default function DashboardPage() {
                 <span>{isWeatherLoading ? '...' : `${weather?.temp ?? 24}°C`}</span>
                 {weather?.city && <span className="text-[10px] opacity-70 font-normal ml-0.5">({weather.city})</span>}
               </div>
-              <p className="text-[11px] font-medium text-muted-foreground pt-1">{greeting}</p>
+              <p className="text-xs font-medium text-muted-foreground pt-0.5">{greeting}</p>
             </div>
 
-            {/* Radial Circular Progress Gauge */}
-            <div className="relative w-16 h-16 flex items-center justify-center shrink-0">
-              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                <path
-                  className="text-muted/30"
-                  strokeWidth="3.5"
-                  stroke="currentColor"
-                  fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                <path
-                  className="text-sidebar-primary"
-                  strokeDasharray="78, 100"
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                  stroke="currentColor"
-                  fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-              </svg>
-              <div className="absolute flex flex-col items-center justify-center text-center">
-                <span className="text-base font-bold text-foreground leading-none">
-                  {summary.totalPatients}
-                </span>
-                <span className="text-[8px] text-muted-foreground font-medium">Patients</span>
-              </div>
+            <div>
+              <h3 className="text-base font-bold text-foreground leading-tight truncate">{userName}</h3>
+              <p className="text-xs text-muted-foreground font-medium truncate">{userRole}</p>
             </div>
-          </div>
 
-          <div>
-            <h3 className="text-sm font-bold text-foreground leading-tight">{userName}</h3>
-            <p className="text-[11px] text-muted-foreground font-medium">{userRole}</p>
-
-            <div className="flex items-center gap-3 text-[11px] font-semibold text-muted-foreground pt-2 border-t border-border/40 mt-2">
+            <div className="flex items-center gap-3 text-xs font-semibold text-muted-foreground pt-2 border-t border-border/40">
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-primary" />
                 <span>Doctors: <strong className="text-foreground font-bold">{isSummaryLoading ? '...' : summary.totalDoctors}</strong></span>
@@ -227,6 +200,34 @@ export default function DashboardPage() {
                 <span className="w-2 h-2 rounded-full bg-indigo-500" />
                 <span>Patients: <strong className="text-foreground font-bold">{isSummaryLoading ? '...' : summary.totalPatients}</strong></span>
               </div>
+            </div>
+          </div>
+
+          {/* Right Center: Radial Circular Progress Gauge */}
+          <div className="relative w-22 h-22 sm:w-28 sm:h-28 flex items-center justify-center shrink-0 my-auto">
+            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+              <path
+                className="text-muted/30"
+                strokeWidth="3.5"
+                stroke="currentColor"
+                fill="none"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+              />
+              <path
+                className="text-sidebar-primary"
+                strokeDasharray="78, 100"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                stroke="currentColor"
+                fill="none"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+              />
+            </svg>
+            <div className="absolute flex flex-col items-center justify-center text-center">
+              <span className="text-xl sm:text-2xl font-bold text-foreground leading-none">
+                {summary.totalPatients}
+              </span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground font-semibold mt-1">Patients</span>
             </div>
           </div>
         </div>

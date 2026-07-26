@@ -38,6 +38,28 @@ async function seed() {
   console.log('Seeding patients...');
   const conditions = ['Hypertension', 'Migraine', 'Asthma', 'Type 2 Diabetes', 'Osteoarthritis', 'Eczema'];
   const genders: ('Male' | 'Female' | 'Other')[] = ['Male', 'Female', 'Other'];
+  const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
+  const sampleAddresses = [
+    '742 Evergreen Terrace, Springfield',
+    '123 Maple Street, Boston, MA',
+    '456 Oak Avenue, Chicago, IL',
+    '789 Pine Road, Seattle, WA',
+    '321 Elm Street, Austin, TX'
+  ];
+  const sampleAllergies = [
+    ['Penicillin'],
+    ['Latex', 'Peanuts'],
+    ['Sulfa Drugs'],
+    ['Aspirin', 'Dust Mites'],
+    []
+  ];
+  const sampleHistories = [
+    ['Appendectomy (2018)', 'COVID-19 Hospitalization (2021)'],
+    ['Mild Concussion (2019)'],
+    ['Knee Arthroscopy (2020)', 'Seasonal Allergies'],
+    ['Gallbladder Surgery (2017)'],
+    ['None reported']
+  ];
 
   const patientsData = [];
   for (let i = 1; i <= 25; i++) {
@@ -53,7 +75,12 @@ async function seed() {
       condition: conditions[i % conditions.length],
       phone: `+1 555-02${10 + i}`,
       visitDate,
-      notes: `Routine follow-up for patient ${i}`,
+      notes: `Routine follow-up consultation for patient ${i}. Patient reports stable vitals and compliant medication schedule.`,
+      bloodGroup: bloodGroups[i % bloodGroups.length],
+      emergencyContact: `+1 555-09${10 + i} (Family Member)`,
+      address: sampleAddresses[i % sampleAddresses.length],
+      allergies: sampleAllergies[i % sampleAllergies.length],
+      medicalHistory: sampleHistories[i % sampleHistories.length],
     });
   }
   await Patient.insertMany(patientsData);

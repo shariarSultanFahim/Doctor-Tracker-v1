@@ -5,7 +5,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Patient, Doctor } from '@doctor-tracker/shared-types';
 import DoctorCombobox from '@/components/shared/doctor-combobox';
-import { X, Loader2 } from 'lucide-react';
+import DatePicker from '@/components/shared/date-picker';
+import AvatarWithFallback from '@/components/shared/avatar-with-fallback';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const patientFormSchema = z.object({
@@ -18,9 +22,19 @@ export const patientFormSchema = z.object({
   visitDate: z.string().min(1, 'Visit date is required'),
   notes: z.string().max(500, 'Notes max 500 characters').optional(),
   avatar: z.string().optional(),
+  bloodGroup: z.string().optional(),
+  emergencyContact: z.string().optional(),
+  address: z.string().optional(),
+  allergies: z.string().optional(), // Comma separated in UI
+  medicalHistory: z.string().optional(), // Comma separated in UI
 });
 
-export type PatientFormData = z.infer<typeof patientFormSchema>;
+export type PatientFormDataInput = z.infer<typeof patientFormSchema>;
+
+export interface PatientFormData extends Omit<PatientFormDataInput, 'allergies' | 'medicalHistory'> {
+  allergies?: string[];
+  medicalHistory?: string[];
+}
 
 interface PatientSheetProps {
   isOpen: boolean;
@@ -28,8 +42,8 @@ interface PatientSheetProps {
   onSubmit: (data: PatientFormData) => Promise<void>;
   initialData?: Patient | null;
   doctors?: Doctor[];
-  lockDoctorId?: string;
-  title: string;
+  defaultDoctorId?: string;
+  isLoading?: boolean;
 }
 
 export default function PatientSheet({
@@ -38,10 +52,13 @@ export default function PatientSheet({
   onSubmit,
   initialData,
   doctors = [],
-  lockDoctorId,
-  title,
+  defaultDoctorId,
+  isLoading = false,
 }: PatientSheetProps) {
-  const defaultDocId = lockDoctorId || (typeof initialData?.doctorId === 'object' ? initialData.doctorId._id : initialData?.doctorId) || '';
+  const doctorIdVal =
+    defaultDoctorId ||
+    (typeof initialData?.doctorId === 'object' ? initialData.doctorId._id : initialData?.doctorId) ||
+    '';
 
   const {
     register,
@@ -49,19 +66,26 @@ export default function PatientSheet({
     control,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
-  } = useForm<PatientFormData>({
+    formState: { errors },
+  } = useForm<PatientFormDataInput>({
     resolver: zodResolver(patientFormSchema),
     values: {
-      doctorId: defaultDocId,
+      doctorId: doctorIdVal,
       name: initialData?.name || '',
       age: initialData?.age ?? 30,
       gender: initialData?.gender || 'Male',
       condition: initialData?.condition || '',
       phone: initialData?.phone || '',
-      visitDate: initialData?.visitDate ? new Date(initialData.visitDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      visitDate: initialData?.visitDate
+        ? new Date(initialData.visitDate).toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0],
       notes: initialData?.notes || '',
       avatar: initialData?.avatar || '',
+      bloodGroup: initialData?.bloodGroup || 'O+',
+      emergencyContact: initialData?.emergencyContact || '',
+      address: initialData?.address || '',
+      allergies: initialData?.allergies ? initialData.allergies.join(', ') : '',
+      medicalHistory: initialData?.medicalHistory ? initialData.medicalHistory.join(', ') : '',
     },
   });
 
@@ -83,185 +107,224 @@ export default function PatientSheet({
     }
   };
 
-  if (!isOpen) return null;
-
-  const lockedDoctor = doctors.find((d) => d._id === lockDoctorId);
-  const lockedDoctorDisplayName = lockedDoctor ? `${lockedDoctor.name} (${lockedDoctor.specialization})` : lockDoctorId;
+  const handleFormSubmit = async (data: PatientFormDataInput) => {
+    const formattedData: PatientFormData = {
+      ...data,
+      allergies: data.allergies
+        ? data.allergies.split(',').map((s) => s.trim()).filter(Boolean)
+        : [],
+      medicalHistory: data.medicalHistory
+        ? data.medicalHistory.split(',').map((s) => s.trim()).filter(Boolean)
+        : [],
+    };
+    await onSubmit(formattedData);
+  };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex justify-end transition-opacity">
-      <div className="bg-white w-full max-w-md h-full shadow-2xl border-l border-slate-200 p-6 flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-200">
-        <div>
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
-            <div>
-              <h3 className="text-lg font-bold text-slate-900">{title}</h3>
-              <p className="text-xs text-slate-500">Enter patient diagnosis & appointment records</p>
-            </div>
-            <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600 rounded-md">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent side="right" className="w-full sm:max-w-md glass-card flex flex-col justify-between overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>{initialData ? 'Edit Patient Record' : 'Register New Patient'}</SheetTitle>
+          <SheetDescription>Enter complete clinical records and personal medical history</SheetDescription>
+        </SheetHeader>
 
-          <form id="patient-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="flex flex-col items-center gap-3 mb-6">
-              <div className="relative group">
-                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-200 bg-slate-50 flex items-center justify-center">
-                  {watchAvatar ? (
-                    <img src={watchAvatar} alt="Patient Avatar" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-2xl font-bold text-slate-400">
-                      {watchName ? watchName.charAt(0).toUpperCase() : 'P'}
-                    </span>
-                  )}
-                </div>
-                <label
-                  htmlFor="patient-avatar"
-                  className="absolute inset-0 bg-slate-900/60 text-white rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-xs font-semibold"
-                >
-                  <span>Upload</span>
-                  <span>Photo</span>
-                </label>
-                <input
-                  type="file"
-                  id="patient-avatar"
-                  accept="image/*"
-                  onChange={handleAvatarChange}
-                  className="hidden"
-                />
-              </div>
-              {watchAvatar && (
-                <button
-                  type="button"
-                  onClick={() => setValue('avatar', '')}
-                  className="text-xs text-red-500 hover:text-red-700 font-semibold"
-                >
-                  Remove Photo
-                </button>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Attending Doctor</label>
-              {lockDoctorId ? (
-                <div>
-                  <input type="hidden" {...register('doctorId')} value={lockDoctorId} />
-                  <div className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm text-slate-700 font-medium">
-                    {lockedDoctorDisplayName}
-                  </div>
-                </div>
-              ) : (
-                <Controller
-                  name="doctorId"
-                  control={control}
-                  render={({ field }) => (
-                    <DoctorCombobox
-                      doctors={doctors}
-                      value={field.value}
-                      onChange={field.onChange}
-                      placeholder="Search & select doctor..."
-                    />
-                  )}
-                />
-              )}
-              {errors.doctorId && <p className="text-xs text-red-500 mt-1">{errors.doctorId.message}</p>}
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Patient Name</label>
-                <input
-                  {...register('name')}
-                  placeholder="Jane Doe"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
-                />
-                {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Age</label>
-                <input
-                  type="number"
-                  {...register('age')}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
-                />
-                {errors.age && <p className="text-xs text-red-500 mt-1">{errors.age.message}</p>}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Gender</label>
-                <select
-                  {...register('gender')}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 bg-white"
-                >
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Condition</label>
-                <input
-                  {...register('condition')}
-                  placeholder="Hypertension"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
-                />
-                {errors.condition && <p className="text-xs text-red-500 mt-1">{errors.condition.message}</p>}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Phone Number</label>
-                <input
-                  {...register('phone')}
-                  placeholder="+1 555-0182"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
-                />
-                {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p>}
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Visit Date</label>
-                <input
-                  type="date"
-                  {...register('visitDate')}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
-                />
-                {errors.visitDate && <p className="text-xs text-red-500 mt-1">{errors.visitDate.message}</p>}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Medical Notes</label>
-              <textarea
-                {...register('notes')}
-                rows={3}
-                placeholder="Diagnosis details, prescription notes..."
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+        <form id="patient-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 my-4">
+          {/* Avatar Upload */}
+          <div className="flex flex-col items-center gap-2">
+            <div className="relative group cursor-pointer">
+              <AvatarWithFallback
+                src={watchAvatar}
+                name={watchName || 'Patient'}
+                className="w-20 h-20 border-2 border-primary/20 text-xl font-bold"
+              />
+              <label
+                htmlFor="patient-avatar"
+                className="absolute inset-0 bg-black/60 text-white rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-xs font-medium"
+              >
+                Upload
+              </label>
+              <input
+                id="patient-avatar"
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
               />
             </div>
-          </form>
-        </div>
+            <span className="text-[11px] text-muted-foreground">Click photo to update avatar</span>
+          </div>
 
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 mt-6">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg border border-slate-200"
-          >
+          {/* Attending Doctor Combobox */}
+          <div>
+            <label className="block text-xs font-semibold text-foreground mb-1">Attending Doctor *</label>
+            <Controller
+              name="doctorId"
+              control={control}
+              render={({ field }) => (
+                <DoctorCombobox
+                  doctors={doctors}
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Select doctor..."
+                />
+              )}
+            />
+            {errors.doctorId && <p className="text-xs text-destructive mt-1">{errors.doctorId.message}</p>}
+          </div>
+
+          {/* Name & Phone */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">Full Name *</label>
+              <input
+                type="text"
+                {...register('name')}
+                placeholder="Patient name"
+                className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+              {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">Contact Phone *</label>
+              <input
+                type="text"
+                {...register('phone')}
+                placeholder="+1 555-0192"
+                className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+              {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone.message}</p>}
+            </div>
+          </div>
+
+          {/* Age, Gender & Blood Group */}
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">Age *</label>
+              <input
+                type="number"
+                {...register('age')}
+                className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+              {errors.age && <p className="text-xs text-destructive mt-1">{errors.age.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">Gender *</label>
+              <select
+                {...register('gender')}
+                className="w-full px-2 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">Blood Group</label>
+              <select
+                {...register('bloodGroup')}
+                className="w-full px-2 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                {['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map((bg) => (
+                  <option key={bg} value={bg}>
+                    {bg}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Condition & Visit Date */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">Condition / Diagnosis *</label>
+              <input
+                type="text"
+                {...register('condition')}
+                placeholder="e.g. Hypertension"
+                className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+              {errors.condition && <p className="text-xs text-destructive mt-1">{errors.condition.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-foreground mb-1">Visit Date *</label>
+              <Controller
+                name="visitDate"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker value={field.value} onChange={field.onChange} placeholder="Visit date" />
+                )}
+              />
+            </div>
+          </div>
+
+          {/* Emergency Contact & Address */}
+          <div>
+            <label className="block text-xs font-semibold text-foreground mb-1">Emergency Contact</label>
+            <input
+              type="text"
+              {...register('emergencyContact')}
+              placeholder="+1 555-0911 (Relative)"
+              className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-foreground mb-1">Home Address</label>
+            <input
+              type="text"
+              {...register('address')}
+              placeholder="Full address"
+              className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+
+          {/* Allergies & Medical History (Comma separated) */}
+          <div>
+            <label className="block text-xs font-semibold text-foreground mb-1">Known Allergies (Comma-separated)</label>
+            <input
+              type="text"
+              {...register('allergies')}
+              placeholder="e.g. Penicillin, Peanuts"
+              className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-foreground mb-1">Surgical / Medical History (Comma-separated)</label>
+            <input
+              type="text"
+              {...register('medicalHistory')}
+              placeholder="e.g. Appendectomy (2018), Knee Surgery (2021)"
+              className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className="block text-xs font-semibold text-foreground mb-1">Clinical Notes</label>
+            <textarea
+              {...register('notes')}
+              rows={3}
+              placeholder="Patient symptoms & observation..."
+              className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+        </form>
+
+        <SheetFooter className="pt-4 border-t border-border/40 gap-2">
+          <Button variant="outline" size="sm" onClick={onClose} disabled={isLoading}>
             Cancel
-          </button>
-          <button
-            type="submit"
-            form="patient-form"
-            disabled={isSubmitting}
-            className="px-4 py-2 text-sm font-medium bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
-          >
-            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            Save Patient
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+          <Button type="submit" form="patient-form" size="sm" disabled={isLoading} className="gap-2">
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {initialData ? 'Save Changes' : 'Register Patient'}
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

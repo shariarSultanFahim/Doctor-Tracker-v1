@@ -11,6 +11,9 @@ const userSchema = new Schema<UserDocument>(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
     role: { type: String, enum: ['admin'], default: 'admin' },
+    avatar: { type: String },
+    tablePreferences: { type: Schema.Types.Mixed, default: {} },
+    theme: { type: String, enum: ['light', 'dark', 'system'], default: 'system' },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );

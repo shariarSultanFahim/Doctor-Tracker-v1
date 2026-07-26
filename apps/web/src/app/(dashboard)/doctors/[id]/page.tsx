@@ -10,8 +10,14 @@ import { useDoctorPatients, useCreatePatient, useUpdatePatient, useDeletePatient
 import { Patient } from '@doctor-tracker/shared-types';
 import PatientSheet, { PatientFormData } from '../../patients/_components/patient-sheet';
 import DoctorSheet, { DoctorFormData } from '../../doctors/_components/doctor-sheet';
+import AddPatientModal from './_components/add-patient-modal';
+import ConfirmDeleteDialog from '@/components/shared/confirm-delete-dialog';
+import AvatarWithFallback from '@/components/shared/avatar-with-fallback';
+import DataTable, { ColumnDef } from '@/components/shared/data-table/data-table';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Plus, Search, Edit2, Trash2, ChevronLeft, ChevronRight, Loader2, ArrowLeft } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, ArrowLeft, Eye, Mail, Phone, Building, UserCheck } from 'lucide-react';
 
 export default function DoctorDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -27,7 +33,11 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
 
   const [isPatientSheetOpen, setIsPatientSheetOpen] = useState(false);
   const [isDoctorSheetOpen, setIsDoctorSheetOpen] = useState(false);
+  const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+
+  const [deleteDoctorConfirm, setDeleteDoctorConfirm] = useState(false);
+  const [deletePatientId, setDeletePatientId] = useState<string | null>(null);
 
   const { data: doctorRes, isLoading: isDoctorLoading } = useDoctor(id);
   const { data: patientsRes, isLoading: isPatientsLoading } = useDoctorPatients(id, {
@@ -63,18 +73,16 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
   };
 
   const handleDoctorDelete = async () => {
-    if (confirm('Are you sure you want to delete this doctor? This will not delete their assigned patients, but their attending doctor reference will be unlinked.')) {
-      try {
-        await deleteDoctorMutation.mutateAsync(id);
-        toast.success('Doctor profile deleted successfully');
-        router.push('/doctors');
-      } catch (err: any) {
-        toast.error(err.response?.data?.error || 'Delete failed');
-      }
+    try {
+      await deleteDoctorMutation.mutateAsync(id);
+      toast.success('Doctor profile deleted successfully');
+      router.push('/doctors');
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Delete failed');
     }
   };
 
-  const handleCreateOrUpdate = async (formData: PatientFormData) => {
+  const handleCreateOrUpdatePatient = async (formData: PatientFormData) => {
     try {
       if (selectedPatient) {
         await updatePatientMutation.mutateAsync({ id: selectedPatient._id, data: formData });
@@ -90,237 +98,284 @@ export default function DoctorDetailPage({ params }: { params: Promise<{ id: str
     }
   };
 
-  const handleDelete = async (patientId: string) => {
-    if (confirm('Are you sure you want to delete this patient record?')) {
-      try {
-        await deletePatientMutation.mutateAsync(patientId);
-        toast.success('Patient record deleted');
-      } catch (err: any) {
-        toast.error(err.response?.data?.error || 'Delete failed');
-      }
+  const handleConfirmDeletePatient = async () => {
+    if (!deletePatientId) return;
+    try {
+      await deletePatientMutation.mutateAsync(deletePatientId);
+      toast.success('Patient record deleted');
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Delete failed');
+    } finally {
+      setDeletePatientId(null);
     }
   };
 
+  const patientColumns: ColumnDef<Patient>[] = [
+    {
+      id: 'name',
+      header: 'Patient Name',
+      accessorKey: 'name',
+      cell: (p) => (
+        <div className="flex items-center gap-3">
+          <AvatarWithFallback src={p.avatar} name={p.name} className="w-8 h-8" />
+          <Link href={`/patients/${p._id}`} className="font-medium text-foreground hover:underline">
+            {p.name}
+          </Link>
+        </div>
+      ),
+    },
+    {
+      id: 'age',
+      header: 'Age / Gender',
+      cell: (p) => (
+        <span>
+          {p.age} yrs • <span className="text-muted-foreground">{p.gender}</span>
+        </span>
+      ),
+    },
+    {
+      id: 'condition',
+      header: 'Condition',
+      cell: (p) => <Badge variant="outline">{p.condition}</Badge>,
+    },
+    {
+      id: 'phone',
+      header: 'Contact',
+      accessorKey: 'phone',
+    },
+    {
+      id: 'visitDate',
+      header: 'Last Visit',
+      cell: (p) => new Date(p.visitDate).toLocaleDateString(),
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      className: 'text-right',
+      cell: (p) => (
+        <div className="flex items-center justify-end gap-1">
+          <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+            <Link href={`/patients/${p._id}`}>
+              <Eye className="h-4 w-4 text-muted-foreground" />
+            </Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => {
+              setSelectedPatient(p);
+              setIsPatientSheetOpen(true);
+            }}
+          >
+            <Edit2 className="h-4 w-4 text-muted-foreground" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={() => setDeletePatientId(p._id)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   if (isDoctorLoading) {
     return (
-      <div className="py-24 text-center text-slate-400">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-sky-600" />
-        Loading doctor profile...
+      <div className="py-20 text-center text-muted-foreground glass-card">
+        Loading doctor profile details...
       </div>
     );
   }
 
   if (!doctor) {
-    return <div className="py-12 text-center text-slate-500">Doctor profile not found.</div>;
+    return (
+      <div className="py-20 text-center space-y-4 glass-card">
+        <h2 className="text-lg font-bold text-foreground">Doctor Profile Not Found</h2>
+        <Button asChild variant="outline">
+          <Link href="/doctors" className="gap-2">
+            <ArrowLeft className="h-4 w-4" /> Back to Directory
+          </Link>
+        </Button>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
-      <Link href="/doctors" className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-900">
-        <ArrowLeft className="h-4 w-4" /> Back to Doctors Directory
-      </Link>
-
-      {/* Doctor Summary Card */}
-      <div className="bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 shadow-inner animate-in fade-in zoom-in duration-300">
-            {doctor.avatar ? (
-              <img src={doctor.avatar} alt={doctor.name} className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-2xl font-bold text-slate-400">
-                {doctor.name.charAt(0).toUpperCase()}
-              </span>
-            )}
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">{doctor.name}</h1>
-            <p className="text-sm font-medium text-sky-600">{doctor.specialization}</p>
-            <p className="text-xs text-slate-500 mt-1">{doctor.hospital}</p>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-6">
-          <div className="flex flex-wrap gap-4 text-xs border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6">
-            <div>
-              <span className="block text-slate-400 font-medium">Phone</span>
-              <span className="font-semibold text-slate-800">{doctor.phone}</span>
-            </div>
-            <div>
-              <span className="block text-slate-400 font-medium">Email</span>
-              <span className="font-semibold text-slate-800">{doctor.email}</span>
-            </div>
-            <div>
-              <span className="block text-slate-400 font-medium">Registered</span>
-              <span className="font-semibold text-slate-800">{new Date(doctor.createdAt).toLocaleDateString()}</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6">
-            <button
-              onClick={() => setIsDoctorSheetOpen(true)}
-              className="inline-flex items-center justify-center gap-2 px-3 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium text-xs rounded-lg transition-colors"
-            >
-              <Edit2 className="h-3.5 w-3.5" />
-              Edit Profile
-            </button>
-            <button
-              onClick={handleDoctorDelete}
-              className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-medium text-xs rounded-lg transition-colors border border-red-100"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              Delete Profile
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Scoped Patient List Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4">
-        <div>
-          <h2 className="text-lg font-bold text-slate-900">Assigned Patients</h2>
-          <p className="text-xs text-slate-500">Patients undergoing care under {doctor.name}</p>
-        </div>
-        <button
-          onClick={() => {
-            setSelectedPatient(null);
-            setIsPatientSheetOpen(true);
-          }}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium text-sm rounded-lg transition-colors shadow-sm"
+      {/* Top Back Navigation & Action Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <Link
+          href="/doctors"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
         >
-          <Plus className="h-4 w-4" />
-          Add Patient
-        </button>
+          <ArrowLeft className="h-4 w-4" />
+          Back to Doctors Directory
+        </Link>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setIsDoctorSheetOpen(true)} className="gap-2 text-xs">
+            <Edit2 className="h-3.5 w-3.5" />
+            Edit Profile
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setDeleteDoctorConfirm(true)}
+            className="gap-2 text-xs"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete Doctor
+          </Button>
+        </div>
       </div>
 
-      {/* Scoped Patients DataTable */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-100">
-          <div className="relative max-w-xs">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+      {/* Doctor Header Banner Card */}
+      <div className="glass-card p-6 rounded-2xl border border-border shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+          <AvatarWithFallback
+            src={doctor.avatar}
+            name={doctor.name}
+            className="w-20 h-20 text-2xl font-bold border-2 border-primary/20 shadow-md"
+          />
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-foreground">{doctor.name}</h1>
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-semibold">
+                {doctor.specialization}
+              </Badge>
+            </div>
+            <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-1">
+              <span className="flex items-center gap-1.5">
+                <Building className="h-3.5 w-3.5 text-primary" />
+                {doctor.hospital}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Phone className="h-3.5 w-3.5 text-primary" />
+                {doctor.phone}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Mail className="h-3.5 w-3.5 text-primary" />
+                {doctor.email}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="glass-card px-6 py-4 rounded-xl border border-border bg-muted/20 flex items-center gap-4 self-stretch md:self-auto justify-between">
+          <div>
+            <span className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              Assigned Patients
+            </span>
+            <span className="text-3xl font-extrabold text-foreground">{doctor.patientCount || 0}</span>
+          </div>
+          <div className="p-2.5 rounded-full bg-primary/10 text-primary">
+            <UserCheck className="h-6 w-6" />
+          </div>
+        </div>
+      </div>
+
+      {/* Patients Roster Section */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold text-foreground">Assigned Patients Roster</h2>
+            <p className="text-xs text-muted-foreground">Manage and assign patient cases under Dr. {doctor.name}</p>
+          </div>
+          <Button onClick={() => setIsAddPatientModalOpen(true)} className="gap-2 text-xs">
+            <Plus className="h-4 w-4" />
+            Add Patient
+          </Button>
+        </div>
+
+        {/* Filter Toolbar */}
+        <div className="glass-card p-3 rounded-xl border border-border flex items-center justify-between gap-3">
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
               value={searchInputValue}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Search patients..."
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+              placeholder="Search assigned patients..."
+              className="w-full pl-9 pr-4 py-1.5 text-xs border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
+          {searchInputValue && (
+            <Button variant="ghost" size="sm" onClick={() => handleSearchChange('')} className="text-xs">
+              Clear
+            </Button>
+          )}
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-100 text-xs font-semibold text-slate-600 uppercase">
-                <th className="py-3 px-4">Patient Name</th>
-                <th className="py-3 px-4">Age / Gender</th>
-                <th className="py-3 px-4">Condition</th>
-                <th className="py-3 px-4">Visit Date</th>
-                <th className="py-3 px-4">Phone</th>
-                <th className="py-3 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
-              {isPatientsLoading ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400">
-                    <Loader2 className="h-5 w-5 animate-spin mx-auto mb-1 text-sky-600" />
-                    Fetching patient records...
-                  </td>
-                </tr>
-              ) : patients.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400">
-                    No patients assigned to this doctor yet.
-                  </td>
-                </tr>
-              ) : (
-                patients.map((patient) => (
-                  <tr key={patient._id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-3 px-4 font-medium text-slate-900">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
-                          {patient.avatar ? (
-                            <img src={patient.avatar} alt={patient.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="text-xs font-bold text-slate-400">
-                              {patient.name.charAt(0).toUpperCase()}
-                            </span>
-                          )}
-                        </div>
-                        <span>{patient.name}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-slate-600">{patient.age} / {patient.gender}</td>
-                    <td className="py-3 px-4 text-slate-600">{patient.condition}</td>
-                    <td className="py-3 px-4 text-slate-500 text-xs">
-                      {new Date(patient.visitDate).toLocaleDateString()}
-                    </td>
-                    <td className="py-3 px-4 text-slate-600 text-xs">{patient.phone}</td>
-                    <td className="py-3 px-4 text-right space-x-1">
-                      <button
-                        onClick={() => {
-                          setSelectedPatient(patient);
-                          setIsPatientSheetOpen(true);
-                        }}
-                        className="p-1.5 text-slate-400 hover:text-amber-600 rounded-md hover:bg-amber-50"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(patient._id)}
-                        className="p-1.5 text-slate-400 hover:text-red-600 rounded-md hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* NUQS Synced Pagination Footer */}
-        <div className="p-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <div>
-            Showing Page {pagination.page} of {pagination.totalPages} ({pagination.total} total patients)
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              disabled={pagination.page <= 1}
-              onClick={() => setPageParam(pagination.page - 1)}
-              className="p-1.5 rounded-md border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              disabled={pagination.page >= pagination.totalPages}
-              onClick={() => setPageParam(pagination.page + 1)}
-              className="p-1.5 rounded-md border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
+        {/* DataTable for Patients */}
+        <DataTable
+          data={patients}
+          columns={patientColumns}
+          isLoading={isPatientsLoading}
+          pagination={{
+            page: pagination.page,
+            totalPages: pagination.totalPages,
+            total: pagination.total,
+            onPageChange: (p) => setPageParam(p),
+          }}
+          emptyMessage="No patients assigned under Dr. {doctor.name}."
+        />
       </div>
 
+      {/* Add Patient Modal (Search existing or create new) */}
+      <AddPatientModal
+        isOpen={isAddPatientModalOpen}
+        onClose={() => setIsAddPatientModalOpen(false)}
+        doctorId={doctor._id}
+        doctorName={doctor.name}
+        onAddNewClick={() => {
+          setSelectedPatient(null);
+          setIsPatientSheetOpen(true);
+        }}
+      />
+
+      {/* Edit Doctor Sheet */}
+      <DoctorSheet
+        isOpen={isDoctorSheetOpen}
+        onClose={() => setIsDoctorSheetOpen(false)}
+        onSubmit={handleDoctorEditSubmit}
+        initialData={doctor}
+        isLoading={updateDoctorMutation.isPending}
+      />
+
+      {/* Create / Edit Patient Sheet */}
       <PatientSheet
         isOpen={isPatientSheetOpen}
         onClose={() => {
           setIsPatientSheetOpen(false);
           setSelectedPatient(null);
         }}
-        onSubmit={handleCreateOrUpdate}
-        initialData={selectedPatient}
-        doctors={doctor ? [doctor] : []}
-        lockDoctorId={id}
-        title={selectedPatient ? 'Edit Patient Record' : 'Add New Patient'}
+        onSubmit={handleCreateOrUpdatePatient}
+        initialData={selectedPatient || undefined}
+        defaultDoctorId={doctor._id}
+        isLoading={createPatientMutation.isPending || updatePatientMutation.isPending}
       />
 
-      <DoctorSheet
-        isOpen={isDoctorSheetOpen}
-        onClose={() => setIsDoctorSheetOpen(false)}
-        onSubmit={handleDoctorEditSubmit}
-        initialData={doctor}
-        title="Edit Doctor Details"
+      {/* Confirm Delete Doctor Dialog */}
+      <ConfirmDeleteDialog
+        isOpen={deleteDoctorConfirm}
+        onClose={() => setDeleteDoctorConfirm(false)}
+        onConfirm={handleDoctorDelete}
+        title="Delete Doctor Profile"
+        description={`Are you sure you want to delete Dr. ${doctor.name}? Their patient records will remain intact in the system as unassigned.`}
+        isLoading={deleteDoctorMutation.isPending}
+      />
+
+      {/* Confirm Delete Patient Dialog */}
+      <ConfirmDeleteDialog
+        isOpen={!!deletePatientId}
+        onClose={() => setDeletePatientId(null)}
+        onConfirm={handleConfirmDeletePatient}
+        title="Delete Patient Record"
+        description="Are you sure you want to delete this patient record? Clinical history and assignments will be removed."
+        isLoading={deletePatientMutation.isPending}
       />
     </div>
   );

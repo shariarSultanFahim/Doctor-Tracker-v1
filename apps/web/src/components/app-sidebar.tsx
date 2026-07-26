@@ -26,6 +26,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { logout } from '@/lib/api/auth';
+import { useAuth } from '@/hooks/use-auth';
 import { toast } from 'sonner';
 
 const data = {
@@ -59,12 +60,23 @@ const data = {
         },
       ],
     },
+    {
+      title: 'Settings',
+      items: [
+        {
+          title: 'Admin Profile',
+          url: '/profile',
+          icon: UserCheck,
+        },
+      ],
+    },
   ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const router = useRouter();
+  const { user } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -76,13 +88,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }
   };
 
+  const userName = user?.name || 'Admin User';
+  const userEmail = user?.email || 'admin@doctortracker.com';
+  const userAvatar = user?.avatar;
+
   return (
     <Sidebar variant="inset" collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" render={<Link href="/dashboard" />}>
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sky-600 text-white">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <Activity className="size-5" />
               </div>
               <div className="grid flex-1 text-sm leading-tight">
@@ -112,7 +128,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       <SidebarMenuButton
                         render={<Link href={item.url} />}
                         isActive={isActive}
-                        className="data-[active=true]:bg-white/25 data-[active=true]:shadow-md data-[active=true]:backdrop-blur-sm data-[active=true]:text-primary-foreground"
+                        className="data-[active=true]:bg-primary/20 data-[active=true]:text-primary data-[active=true]:font-bold"
                       >
                         <Icon />
                         <span>{item.title}</span>
@@ -128,37 +144,30 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem className="space-y-5">
-            <div className="hidden flex-col gap-4 group-data-[collapsible=icon]:flex">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>AD</AvatarFallback>
+          <SidebarMenuItem className="space-y-4">
+            <Link href="/profile" className="flex items-center gap-3 p-1 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
+              <Avatar className="h-9 w-9 border border-border">
+                {userAvatar ? <AvatarImage src={userAvatar} alt={userName} className="object-cover" /> : null}
+                <AvatarFallback className="font-semibold">{userName.charAt(0)}</AvatarFallback>
               </Avatar>
-            </div>
-            <div className="group-data-[collapsible=icon]:hidden">
-              <div className="flex items-center justify-start gap-4">
-                <Avatar>
-                  <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>AD</AvatarFallback>
-                </Avatar>
-                <div>
-                  <h2 className="font-semibold text-sm">Admin User</h2>
-                  <h3 className="text-xs text-slate-500">admin@doctortracker.com</h3>
-                </div>
+              <div className="group-data-[collapsible=icon]:hidden overflow-hidden text-left">
+                <h2 className="font-bold text-xs truncate text-sidebar-foreground">{userName}</h2>
+                <h3 className="text-[11px] text-sidebar-foreground/60 truncate">{userEmail}</h3>
               </div>
-            </div>
+            </Link>
+
             <SidebarMenuButton
               render={
                 <Button
                   variant="outline"
                   onClick={handleLogout}
-                  className="w-full bg-transparent border-secondary group-data-[collapsible=icon]:p-0"
+                  className="w-full bg-transparent border-border group-data-[collapsible=icon]:p-0 hover:bg-destructive/10"
                 />
               }
               className="group-data-[collapsible=icon]:w-full"
             >
-              <LogOut className="size-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5 text-red-600" />
-              <span className="group-data-[collapsible=icon]:hidden text-red-600 font-medium">
+              <LogOut className="size-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5 text-destructive" />
+              <span className="group-data-[collapsible=icon]:hidden text-destructive font-medium">
                 Sign Out
               </span>
             </SidebarMenuButton>

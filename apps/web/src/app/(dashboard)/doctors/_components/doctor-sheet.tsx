@@ -4,7 +4,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Doctor } from '@doctor-tracker/shared-types';
-import { X, Loader2 } from 'lucide-react';
+import AvatarWithFallback from '@/components/shared/avatar-with-fallback';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const doctorFormSchema = z.object({
@@ -23,16 +26,16 @@ interface DoctorSheetProps {
   onClose: () => void;
   onSubmit: (data: DoctorFormData) => Promise<void>;
   initialData?: Doctor | null;
-  title: string;
+  isLoading?: boolean;
 }
 
-export default function DoctorSheet({ isOpen, onClose, onSubmit, initialData, title }: DoctorSheetProps) {
+export default function DoctorSheet({ isOpen, onClose, onSubmit, initialData, isLoading = false }: DoctorSheetProps) {
   const {
     register,
     handleSubmit,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<DoctorFormData>({
     resolver: zodResolver(doctorFormSchema),
     values: initialData
@@ -72,132 +75,106 @@ export default function DoctorSheet({ isOpen, onClose, onSubmit, initialData, ti
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex justify-end transition-opacity">
-      <div className="bg-white w-full max-w-md h-full shadow-2xl border-l border-slate-200 p-6 flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-200">
-        <div>
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
-            <div>
-              <h3 className="text-lg font-bold text-slate-900">{title}</h3>
-              <p className="text-xs text-slate-500">Provide medical practitioner credentials</p>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent side="right" className="w-full sm:max-w-md glass-card flex flex-col justify-between overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>{initialData ? 'Edit Doctor Profile' : 'Add New Doctor'}</SheetTitle>
+          <SheetDescription>Configure doctor contact and hospital specialization details</SheetDescription>
+        </SheetHeader>
+
+        <form id="doctor-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4 my-4">
+          {/* Avatar Photo Upload */}
+          <div className="flex flex-col items-center gap-2">
+            <div className="relative group cursor-pointer">
+              <AvatarWithFallback
+                src={watchAvatar}
+                name={watchName || 'Doctor'}
+                className="w-20 h-20 border-2 border-primary/20 text-xl font-bold"
+              />
+              <label
+                htmlFor="doctor-avatar"
+                className="absolute inset-0 bg-black/60 text-white rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-xs font-medium"
+              >
+                Upload
+              </label>
+              <input
+                id="doctor-avatar"
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
+              />
             </div>
-            <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600 rounded-md">
-              <X className="h-5 w-5" />
-            </button>
+            <span className="text-[11px] text-muted-foreground">Click photo to update profile picture</span>
           </div>
 
-          <form id="doctor-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="flex flex-col items-center gap-3 mb-6">
-              <div className="relative group">
-                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-200 bg-slate-50 flex items-center justify-center">
-                  {watchAvatar ? (
-                    <img src={watchAvatar} alt="Doctor Avatar" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-2xl font-bold text-slate-400">
-                      {watchName ? watchName.charAt(0).toUpperCase() : 'DR'}
-                    </span>
-                  )}
-                </div>
-                <label
-                  htmlFor="doctor-avatar"
-                  className="absolute inset-0 bg-slate-900/60 text-white rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-xs font-semibold"
-                >
-                  <span>Upload</span>
-                  <span>Photo</span>
-                </label>
-                <input
-                  type="file"
-                  id="doctor-avatar"
-                  accept="image/*"
-                  onChange={handleAvatarChange}
-                  className="hidden"
-                />
-              </div>
-              {watchAvatar && (
-                <button
-                  type="button"
-                  onClick={() => setValue('avatar', '')}
-                  className="text-xs text-red-500 hover:text-red-700 font-semibold"
-                >
-                  Remove Photo
-                </button>
-              )}
-            </div>
+          <div>
+            <label className="block text-xs font-semibold text-foreground mb-1">Full Name *</label>
+            <input
+              type="text"
+              {...register('name')}
+              placeholder="e.g. Dr. Sarah Jenkins"
+              className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
+          </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
-              <input
-                {...register('name')}
-                placeholder="Dr. Sarah Jenkins"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
-              />
-              {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
-            </div>
+          <div>
+            <label className="block text-xs font-semibold text-foreground mb-1">Specialization *</label>
+            <input
+              type="text"
+              {...register('specialization')}
+              placeholder="e.g. Cardiology"
+              className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            {errors.specialization && <p className="text-xs text-destructive mt-1">{errors.specialization.message}</p>}
+          </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Specialization</label>
-              <input
-                {...register('specialization')}
-                placeholder="Cardiology"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
-              />
-              {errors.specialization && <p className="text-xs text-red-500 mt-1">{errors.specialization.message}</p>}
-            </div>
+          <div>
+            <label className="block text-xs font-semibold text-foreground mb-1">Hospital / Clinic *</label>
+            <input
+              type="text"
+              {...register('hospital')}
+              placeholder="e.g. St. Jude Hospital"
+              className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            {errors.hospital && <p className="text-xs text-destructive mt-1">{errors.hospital.message}</p>}
+          </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Hospital / Clinic</label>
-              <input
-                {...register('hospital')}
-                placeholder="City General Hospital"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
-              />
-              {errors.hospital && <p className="text-xs text-red-500 mt-1">{errors.hospital.message}</p>}
-            </div>
+          <div>
+            <label className="block text-xs font-semibold text-foreground mb-1">Phone Number *</label>
+            <input
+              type="text"
+              {...register('phone')}
+              placeholder="+1 555-0199"
+              className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone.message}</p>}
+          </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Phone Number</label>
-              <input
-                {...register('phone')}
-                placeholder="+1 555-0192"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
-              />
-              {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p>}
-            </div>
+          <div>
+            <label className="block text-xs font-semibold text-foreground mb-1">Email Address *</label>
+            <input
+              type="email"
+              {...register('email')}
+              placeholder="doctor@hospital.com"
+              className="w-full px-3 py-1.5 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            {errors.email && <p className="text-xs text-destructive mt-1">{errors.email.message}</p>}
+          </div>
+        </form>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
-              <input
-                type="email"
-                {...register('email')}
-                placeholder="s.jenkins@hospital.org"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
-              />
-              {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
-            </div>
-          </form>
-        </div>
-
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 mt-6">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg border border-slate-200"
-          >
+        <SheetFooter className="pt-4 border-t border-border/40 gap-2">
+          <Button variant="outline" size="sm" onClick={onClose} disabled={isLoading}>
             Cancel
-          </button>
-          <button
-            type="submit"
-            form="doctor-form"
-            disabled={isSubmitting}
-            className="px-4 py-2 text-sm font-medium bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
-          >
-            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            Save Doctor
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+          <Button type="submit" form="doctor-form" size="sm" disabled={isLoading} className="gap-2">
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {initialData ? 'Save Changes' : 'Create Doctor Profile'}
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

@@ -1,8 +1,16 @@
+export interface TableColumnPreferences {
+  doctors?: Record<string, boolean>;
+  patients?: Record<string, boolean>;
+}
+
 export interface User {
   _id: string;
   name: string;
   email: string;
   role: 'admin';
+  avatar?: string;
+  tablePreferences?: TableColumnPreferences;
+  theme?: 'light' | 'dark' | 'system';
   createdAt: string;
 }
 
@@ -33,6 +41,11 @@ export interface Patient {
   visitDate: string;
   notes?: string;
   avatar?: string;
+  bloodGroup?: string;
+  emergencyContact?: string;
+  address?: string;
+  allergies?: string[];
+  medicalHistory?: string[];
   createdAt: string;
   updatedAt: string;
 }

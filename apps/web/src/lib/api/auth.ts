@@ -17,3 +17,8 @@ export async function logout(): Promise<ApiResponse<void>> {
 export async function getMe(): Promise<ApiResponse<User>> {
   return get<ApiResponse<User>>('/auth/me');
 }
+
+export async function updateProfile(payload: Partial<User & { currentPassword?: string; newPassword?: string }>): Promise<ApiResponse<User>> {
+  const { patch } = await import('../api');
+  return patch<ApiResponse<User>>('/auth/profile', payload);
+}

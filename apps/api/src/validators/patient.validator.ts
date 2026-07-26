@@ -10,6 +10,11 @@ export const createPatientSchema = z.object({
   visitDate: z.string().datetime({ offset: true }).or(z.string().regex(/^\d{4}-\d{2}-\d{2}/, 'Invalid date format')),
   notes: z.string().max(500, 'Notes max 500 characters').optional(),
   avatar: z.string().optional(),
+  bloodGroup: z.string().optional(),
+  emergencyContact: z.string().optional(),
+  address: z.string().optional(),
+  allergies: z.array(z.string()).optional(),
+  medicalHistory: z.array(z.string()).optional(),
 });
 
 export const updatePatientSchema = createPatientSchema.partial();

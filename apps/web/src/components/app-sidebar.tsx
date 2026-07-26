@@ -1,6 +1,5 @@
 'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Sidebar,
@@ -146,18 +145,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem className="space-y-4">
-            <Link href="/profile" className="flex items-center gap-3 p-1 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
-              <Avatar className="h-9 w-9 border border-border">
-                {userAvatar ? <AvatarImage src={userAvatar} alt={userName} className="object-cover" /> : null}
-                <AvatarFallback className="font-semibold">{userName.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div className="group-data-[collapsible=icon]:hidden overflow-hidden text-left">
-                <h2 className="font-bold text-xs truncate text-sidebar-foreground">{userName}</h2>
-                <h3 className="text-[11px] text-sidebar-foreground/60 truncate">{userEmail}</h3>
-              </div>
-            </Link>
-
+          <SidebarMenuItem>
             <SidebarMenuButton
               render={
                 <Button
